@@ -46,7 +46,8 @@ const pageLinks = [
     { title: '404 - Page Not Found', link: null, inDrawer: false },
     { title: 'iverb-stats', link: '/', inDrawer: false },
     { title: 'Records', link: '/records', inDrawer: true, default: true },
-    { title: 'Community', link: '/community', inDrawer: true, default: true },
+    { title: 'Rankings', link: '/ranks', inDrawer: true, default: true },
+    { title: 'Statistics', link: '/stats', inDrawer: true, default: true },
     { title: 'Demo Inspection', link: '/demo', inDrawer: false },
     { title: 'About', link: '/about', inDrawer: false },
 ];

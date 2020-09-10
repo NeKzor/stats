@@ -11,6 +11,8 @@ import DemoView from './views/DemoView';
 import NotFoundView from './views/NotFoundView';
 import AppState, { AppReducer } from './AppState';
 import RecordsView from './views/RecordsView';
+import RankingsView from './views/RankingsView';
+import StatsView from './views/StatsView';
 
 const useStyles = makeStyles((theme) => ({
     views: {
@@ -55,6 +57,8 @@ const App = () => {
                         <Switch>
                             <Redirect exact from="/" to="/records" />
                             <Route exact path="/records/:date?" component={RecordsView} />
+                            <Route exact path="/ranks/:date?" component={RankingsView} />
+                            <Route exact path="/stats/:date?" component={StatsView} />
                             <Route exact path="/about" component={AboutView} />
                             <Route exact path="/demo" component={DemoView} />
                             <Route component={NotFoundView} />

@@ -100,17 +100,29 @@ const RecordsHistoryRow = ({ wr }) => {
     const score = formatScore(wr.score);
     const delta = wr.delta !== null ? formatScore(wr.delta) : null;
 
+    const renderCell = wr.isPartner !== false || !wr.partnerId;
+
     return (
         <TableRow tabIndex={-1}>
-            <MinTableCell align="left">
-                <Tooltip title={<Moment fromNow>{wr.date}</Moment>} placement="bottom-end" enterDelay={300}>
-                    <Moment style={{ color: getDateDifferenceColor(wr.date), ...noWrap }} format="YYYY-MM-DD">
-                        {wr.date}
-                    </Moment>
-                </Tooltip>
-            </MinTableCell>
-            <MinTableCell align="left">{score}</MinTableCell>
-            <MinTableCell align="left">{delta ? '-' + delta : ''}</MinTableCell>
+            {renderCell && (
+                <MinTableCell align="left" rowSpan={wr.isPartner === true ? 2 : 1}>
+                    <Tooltip title={<Moment fromNow>{wr.date}</Moment>} placement="bottom-end" enterDelay={300}>
+                        <Moment style={{ color: getDateDifferenceColor(wr.date), ...noWrap }} format="YYYY-MM-DD">
+                            {wr.date}
+                        </Moment>
+                    </Tooltip>
+                </MinTableCell>
+            )}
+            {renderCell && (
+                <MinTableCell align="left" rowSpan={wr.isPartner === true ? 2 : 1}>
+                    {score}
+                </MinTableCell>
+            )}
+            {renderCell && (
+                <MinTableCell align="left" rowSpan={wr.isPartner === true ? 2 : 1}>
+                    {delta ? '-' + delta : ''}
+                </MinTableCell>
+            )}
             <MinTableCell align="left">
                 <Link
                     color="inherit"

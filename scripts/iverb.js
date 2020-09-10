@@ -2,7 +2,7 @@ const path = require('path');
 const moment = require('moment');
 const { log, tryExportJson, tryMakeDir, importJson } = require('./utils');
 const Portal2Boards = require('./api/client');
-const { Portal2Map } = require('./api/portal2');
+const { Portal2Map, Portal2MapType } = require('./api/portal2');
 
 require('dotenv').config();
 
@@ -16,6 +16,30 @@ Array.prototype.chunk = function (size) {
     }, []);
 };
 
+const findPartners = (entry, prevEntry, nextEntry) => {
+    if (prevEntry && entry.score === prevEntry.score) {
+        if (
+            moment(entry.date).isBetween(moment(prevEntry.date).add(-1, 'hour'), moment(prevEntry.date).add(1, 'hour'))
+        ) {
+            entry.isPartner = true;
+            entry.delta = prevEntry.delta;
+            entry.partnerId = prevEntry.id;
+            prevEntry.partnerId = entry.id;
+            prevEntry.duration = entry.duration;
+            prevEntry.isPartner = false;
+        } else if (
+            nextEntry &&
+            !moment(entry.date).isBetween(moment(nextEntry.date).add(-1, 'hour'), moment(nextEntry.date).add(1, 'hour'))
+        ) {
+            entry.isPartner = null;
+            entry.delta = prevEntry.delta;
+            entry.partnerId = null;
+        }
+    } else {
+        entry.isPartner = false;
+    }
+};
+
 const asHistory = (entry, prevEntry, nextEntry) => ({
     user: {
         id: entry.profile_number,
@@ -26,6 +50,7 @@ const asHistory = (entry, prevEntry, nextEntry) => ({
     date: entry.time_gained,
     score: parseInt(entry.score, 10),
     duration: moment(nextEntry ? nextEntry.time_gained : undefined).diff(moment(entry.time_gained), 'd'),
+    beatenBy: { id: nextEntry ? nextEntry.id : null },
     delta: prevEntry ? Math.abs(prevEntry.score - parseInt(entry.score, 10)) : null,
     demo: entry.hasDemo === '1',
     media: entry.youtubeID,
@@ -63,11 +88,19 @@ const main = async (outputDir, snapshot = true) => {
             const wr = history[0].score;
             const wrs = history.filter((entry) => entry.score === wr);
 
-            campaign.push({
+            const campaignMap = {
                 map,
                 wrs: wrs.map((wr, index, items) => asWr(wr, items[index + 1])),
                 history: history.map((history, index, items) => asHistory(history, items[index + 1], items[index - 1])),
-            });
+            };
+
+            if (map.type === Portal2MapType.Cooperative) {
+                campaignMap.history.forEach((history, index, items) =>
+                    findPartners(history, items[index + 1], items[index - 1]),
+                );
+            }
+
+            campaign.push(campaignMap);
         }
 
         return campaign;
@@ -83,66 +116,138 @@ const main = async (outputDir, snapshot = true) => {
                 name: 'Cooperative',
                 maps: generateCampaign(Portal2Map.cooperativeMaps()),
             },
-        ].map((campaign) => generateStats(campaign, snapshot)),
+        ].map((campaign) => generateRankings(campaign, snapshot, false)),
     };
 
     tryMakeDir(outputDir);
     tryMakeDir(`${outputDir}/records`);
     tryExportJson(`${outputDir}/records/latest.json`, game, true);
 
+    const overall = {
+        name: 'Overall',
+        maps: game.campaigns.map((campaign) => campaign.maps).reduce((acc, val) => acc.concat(...val), []),
+    };
+
+    tryMakeDir(`${outputDir}/stats`);
+    tryExportJson(`${outputDir}/stats/latest.json`, generateStats(overall), true);
+
+    game.campaigns.push(overall);
+
+    game.campaigns.forEach((campaign) => generateRankings(campaign, snapshot, true));
+    game.campaigns.forEach((campaign) => delete campaign.maps);
+
+    tryMakeDir(`${outputDir}/ranks`);
+    tryExportJson(`${outputDir}/ranks/latest.json`, game, true);
+
     /* if (snapshot) {
         tryExportJson(`${outputDir}/${moment().format('YYYY-MM-DD')}.json`, game, true);
     } */
 };
 
-const generateStats = (campaign, snapshot) => {
+const generateStats = (overall) => {
+    const mapWrs = overall.maps
+        .map((t) => {
+            return t.history.map((wr) => {
+                wr.map = t.map;
+                return wr;
+            });
+        })
+        .reduce((acc, val) => acc.concat(val), []);
+
+    mapWrs.forEach((wr) => {
+        if (wr.beatenBy.id) {
+            const newWr = mapWrs.find(({ id }) => id === wr.beatenBy.id);
+            wr.beatenBy.date = newWr.date;
+            wr.beatenBy.user = { ...newWr.user };
+        }
+    });
+
+    const largestImprovement = mapWrs
+        .sort((a, b) => (a.delta === b.delta ? 0 : a.delta < b.delta ? 1 : -1))
+        .slice(0, 10);
+    const longestLasting = mapWrs
+        .sort((a, b) => (a.duration === b.duration ? 0 : a.duration < b.duration ? 1 : -1))
+        .slice(0, 10);
+
+    return { largestImprovement, longestLasting };
+};
+
+const generateRankings = (campaign, snapshot, statsPage) => {
     const totalTime = campaign.maps.map((t) => t.wrs[0].score).reduce((a, b) => a + b, 0);
 
     let users = campaign.maps.map((t) => t.wrs.map((r) => r.user)).reduce((acc, val) => acc.concat(val), []);
     let wrs = campaign.maps.map((t) => t.wrs).reduce((acc, val) => acc.concat(val), []);
 
     let frequency = users.reduce((count, user) => {
-        count[user.name] = (count[user.name] || 0) + 1;
+        count[user.id] = (count[user.id] || 0) + 1;
         return count;
     }, {});
 
     const leaderboard = Object.keys(frequency)
         .sort((a, b) => frequency[b] - frequency[a])
         .map((key) => ({
-            user: users.find((u) => u.name === key),
+            user: users.find((u) => u.id === key),
             wrs: frequency[key],
             duration: snapshot
                 ? wrs
-                      .filter((r) => r.user.name === key)
+                      .filter((r) => r.user.id === key)
                       .map((r) => r.duration)
                       .reduce((a, b) => a + b, 0)
                 : undefined,
         }));
 
+    if (!statsPage) {
+        campaign.stats = {
+            totalTime,
+            leaderboard,
+        };
+
+        return campaign;
+    }
+
     users = campaign.maps.map((t) => t.history.map((r) => r.user)).reduce((acc, val) => acc.concat(val), []);
     wrs = campaign.maps.map((t) => t.history).reduce((acc, val) => acc.concat(val), []);
     frequency = users.reduce((count, user) => {
-        count[user.name] = (count[user.name] || 0) + 1;
+        count[user.id] = (count[user.id] || 0) + 1;
         return count;
     }, {});
 
     const historyLeaderboard = Object.keys(frequency)
         .sort((a, b) => frequency[b] - frequency[a])
         .map((key) => ({
-            user: users.find((u) => u.name === key),
+            user: users.find((u) => u.id === key),
             wrs: frequency[key],
             duration: snapshot
                 ? wrs
-                      .filter((r) => r.user.name === key)
+                      .filter((r) => r.user.id === key)
                       .map((r) => r.duration)
                       .reduce((a, b) => a + b, 0)
                 : undefined,
         }));
 
+    users = campaign.maps
+        .map((t) => {
+            const all = t.history.map((r) => r.user);
+            const ids = [...new Set(t.history.map((r) => r.user.id))];
+            return ids.map((id) => all.find((user) => user.id === id));
+        })
+        .reduce((acc, val) => acc.concat(val), []);
+    frequency = users.reduce((count, user) => {
+        count[user.id] = (count[user.id] || 0) + 1;
+        return count;
+    }, {});
+
+    const uniqueLeaderboard = Object.keys(frequency)
+        .sort((a, b) => frequency[b] - frequency[a])
+        .map((key) => ({
+            user: users.find((u) => u.id === key),
+            wrs: frequency[key],
+        }));
+
     campaign.stats = {
-        totalTime,
         leaderboard,
         historyLeaderboard,
+        uniqueLeaderboard,
     };
 
     return campaign;
@@ -151,7 +256,7 @@ const generateStats = (campaign, snapshot) => {
 const inspect = (obj) => console.dir(obj, { depth: 6 });
 
 if (process.argv[2] === '--test') {
-    main(path.join(__dirname, '../api/'), false).catch(inspect);
+    main(path.join(__dirname, '../api/'), true).catch(inspect);
 }
 
 module.exports = main;

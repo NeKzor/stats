@@ -10,7 +10,7 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import TableSortLabel from '@material-ui/core/TableSortLabel';
 import Tooltip from '@material-ui/core/Tooltip';
-import { stableSortSort } from '../utils/stableSort';
+import { stableSort, stableSortSort } from '../utils/stableSort';
 
 const rows = [
     { id: 'user.name', sortable: false, label: 'Player', align: 'left' },
@@ -18,7 +18,7 @@ const rows = [
     { id: 'duration', id2: 'wrs', sortable: true, label: 'Total Duration', align: 'left' },
 ];
 
-const RankingsTableHead = ({ order, orderBy, onRequestSort }) => {
+const RankingsTableHead = ({ order, orderBy, onRequestSort, showDuration }) => {
     const createSortHandler = (prop1, prop2) => (event) => {
         onRequestSort(event, prop1, prop2);
     };
@@ -26,27 +26,29 @@ const RankingsTableHead = ({ order, orderBy, onRequestSort }) => {
     return (
         <TableHead>
             <TableRow>
-                {rows.map((row) => (
-                    <TableCell
-                        key={row.id}
-                        align={row.align}
-                        padding="default"
-                        sortDirection={orderBy === row.id ? order : false}
-                    >
-                        {row.sortable === true && (
-                            <Tooltip title={'Sort by ' + row.label} placement="bottom-start" enterDelay={300}>
-                                <TableSortLabel
-                                    active={orderBy === row.id}
-                                    direction={order}
-                                    onClick={createSortHandler(row.id, row.id2)}
-                                >
-                                    {row.label}
-                                </TableSortLabel>
-                            </Tooltip>
-                        )}
-                        {row.sortable === false && row.label}
-                    </TableCell>
-                ))}
+                {rows
+                    .filter(({ id }) => id !== 'duration' || showDuration)
+                    .map((row) => (
+                        <TableCell
+                            key={row.id}
+                            align={row.align}
+                            padding="default"
+                            sortDirection={orderBy === row.id ? order : false}
+                        >
+                            {row.sortable === true && (
+                                <Tooltip title={'Sort by ' + row.label} placement="bottom-start" enterDelay={300}>
+                                    <TableSortLabel
+                                        active={orderBy === row.id}
+                                        direction={order}
+                                        onClick={createSortHandler(row.id, row.id2)}
+                                    >
+                                        {row.label}
+                                    </TableSortLabel>
+                                </Tooltip>
+                            )}
+                            {row.sortable === false && row.label}
+                        </TableCell>
+                    ))}
             </TableRow>
         </TableHead>
     );
@@ -75,8 +77,8 @@ const noWrap = { whiteSpace: 'nowrap' };
 const minifiedStyle = { padding: '7px 0px 7px 16px' };
 const MinTableCell = (props) => <TableCell style={minifiedStyle} {...props} />;
 
-const RecordsTable = ({ data }) => {
-    const [{ order, orderBy, thenBy, rowsPerPage, page }, setState] = React.useState(defaultState);
+const RecordsTable = ({ data, showDuration }) => {
+    const [{ order, orderBy, thenBy, rowsPerPage, page }, setState] = React.useState({ ...defaultState });
 
     const handleRequestSort = (_, prop1, prop2) => {
         const newOrderBy = prop1;
@@ -95,9 +97,14 @@ const RecordsTable = ({ data }) => {
     return (
         <div className={classes.root}>
             <Table size="small">
-                <RankingsTableHead order={order} orderBy={orderBy} onRequestSort={handleRequestSort} />
+                <RankingsTableHead
+                    order={order}
+                    orderBy={orderBy}
+                    onRequestSort={handleRequestSort}
+                    showDuration={showDuration}
+                />
                 <TableBody>
-                    {stableSortSort(data, order, orderBy, thenBy)
+                    {(showDuration ? stableSortSort : stableSort)(data, order, orderBy, thenBy)
                         .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                         .map((row) => (
                             <TableRow tabIndex={-1} key={row.user.id}>
@@ -116,9 +123,11 @@ const RecordsTable = ({ data }) => {
                                     </Grid>
                                 </MinTableCell>
                                 <MinTableCell align="left">{row.wrs}</MinTableCell>
-                                <MinTableCell align="left">
-                                    {row.duration} day{row.duration === 1 ? '' : 's'}
-                                </MinTableCell>
+                                {showDuration && (
+                                    <MinTableCell align="left">
+                                        {row.duration} day{row.duration === 1 ? '' : 's'}
+                                    </MinTableCell>
+                                )}
                             </TableRow>
                         ))}
                 </TableBody>
