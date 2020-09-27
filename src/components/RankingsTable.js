@@ -78,7 +78,7 @@ const minifiedStyle = { padding: '7px 0px 7px 16px' };
 const MinTableCell = (props) => <TableCell style={minifiedStyle} {...props} />;
 
 const RecordsTable = ({ data, showDuration }) => {
-    const [{ order, orderBy, thenBy, rowsPerPage, page }, setState] = React.useState({ ...defaultState });
+    const [{ order, orderBy, thenBy }, setState] = React.useState({ ...defaultState });
 
     const handleRequestSort = (_, prop1, prop2) => {
         const newOrderBy = prop1;
@@ -105,7 +105,6 @@ const RecordsTable = ({ data, showDuration }) => {
                 />
                 <TableBody>
                     {(showDuration ? stableSortSort : stableSort)(data, order, orderBy, thenBy)
-                        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                         .map((row) => (
                             <TableRow tabIndex={-1} key={row.user.id}>
                                 <MinTableCell align="left">
