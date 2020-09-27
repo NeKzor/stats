@@ -79,8 +79,8 @@ const noWrap = { whiteSpace: 'nowrap' };
 const minifiedStyle = { padding: '7px 0px 7px 16px' };
 const MinTableCell = (props) => <TableCell style={minifiedStyle} {...props} />;
 
-const RecordsTable = ({ data, useLiveDuration }) => {
-    const [{ order, orderBy, thenBy, rowsPerPage, page }, setState] = React.useState({ ...defaultState });
+const RecordsTable = ({ data }) => {
+    const [{ order, orderBy, thenBy }, setState] = React.useState({ ...defaultState });
 
     const handleRequestSort = (_, prop1, prop2) => {
         const newOrderBy = prop1;
@@ -102,7 +102,6 @@ const RecordsTable = ({ data, useLiveDuration }) => {
                 <LargestImprovementHead order={order} orderBy={orderBy} onRequestSort={handleRequestSort} />
                 <TableBody>
                     {stableSortSort(data, order, orderBy, thenBy)
-                        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                         .map((row) => (
                             <TableRow tabIndex={-1} key={row.id}>
                                 <MinTableCell

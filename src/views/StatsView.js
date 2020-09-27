@@ -50,11 +50,19 @@ const StatsView = ({ match }) => {
     }, [page]);
 
     React.useEffect(() => {
-        (async () => {
-            const game = await Api.request('stats', date);
-            if (!isMounted.current) return;
-            setGame(game);
-        })();
+        Api.request('stats', date)
+            .then((game) => {
+                if (isMounted.current) {
+                    setGame(game);
+                }
+            })
+            .catch((error) => {
+                console.error(error);
+
+                if (isMounted.current) {
+                    setGame(null);
+                }
+            });
     }, [isMounted, page, date, useLiveDuration]);
 
     const StatsComponent = (() => {

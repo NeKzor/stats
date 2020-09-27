@@ -82,7 +82,7 @@ const minifiedStyle = { padding: '7px 0px 7px 16px' };
 const MinTableCell = (props) => <TableCell style={minifiedStyle} {...props} />;
 
 const RecordsTable = ({ data, useLiveDuration }) => {
-    const [{ order, orderBy, thenBy, rowsPerPage, page }, setState] = React.useState({ ...defaultState });
+    const [{ order, orderBy, thenBy }, setState] = React.useState({ ...defaultState });
 
     const handleRequestSort = (_, prop1, prop2) => {
         const newOrderBy = prop1;
@@ -104,7 +104,6 @@ const RecordsTable = ({ data, useLiveDuration }) => {
                 <LongestLastingHead order={order} orderBy={orderBy} onRequestSort={handleRequestSort} />
                 <TableBody>
                     {stableSortSort(data, order, orderBy, thenBy)
-                        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                         .map((row) => (
                             <TableRow tabIndex={-1} key={row.id}>
                                 <MinTableCell
@@ -138,7 +137,7 @@ const RecordsTable = ({ data, useLiveDuration }) => {
                                 </MinTableCell>
                                 <MinTableCell align="left">
                                     <Tooltip title="in days" placement="bottom-end" enterDelay={300}>
-                                        {useLiveDuration ? (
+                                        {useLiveDuration && row.beatenBy.id === null ? (
                                             <Moment style={noWrap} diff={row.date} unit="days"></Moment>
                                         ) : (
                                             <span>{row.duration}</span>
@@ -174,7 +173,7 @@ const RecordsTable = ({ data, useLiveDuration }) => {
                                             </Moment>
                                         </Tooltip>
                                     ) : (
-                                        <span>on going</span>
+                                        <span>ongoing</span>
                                     )}
                                 </MinTableCell>
                                 <MinTableCell align="left">

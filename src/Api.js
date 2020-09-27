@@ -6,9 +6,14 @@ class Api {
                 : 'https://raw.githubusercontent.com/NeKzor/nekzor.github.io/master/iverb-stats';
     }
     async request(route, date) {
-        let res = await fetch(`${this.baseApi}/${route}/${date || 'latest'}.json`);
+        const res = await fetch(`${this.baseApi}/${route}/${date || 'latest'}.json`);
         console.log(`GET ${res.url} (${res.status})`);
-        return res.ok ? await res.json() : [];
+
+        if (!res.ok) {
+            throw new Error(res.statusText);
+        }
+
+        return await res.json();
     }
 }
 

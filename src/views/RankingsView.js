@@ -19,6 +19,7 @@ import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
+import UniqueRecordsChart from '../components/UniqueRecordsChart';
 
 const useStyles = makeStyles((theme) => ({
     padTop: {
@@ -54,11 +55,19 @@ const RankingsView = ({ match }) => {
     }, [page]);
 
     React.useEffect(() => {
-        (async () => {
-            const game = (await Api.request('ranks', date)).campaigns;
-            if (!isMounted.current) return;
-            setGame(game);
-        })();
+        Api.request('ranks', date)
+            .then(({ campaigns }) => {
+                if (isMounted.current) {
+                    setGame(campaigns);
+                }
+            })
+            .catch((error) => {
+                console.error(error);
+
+                if (isMounted.current) {
+                    setGame(null);
+                }
+            });
     }, [isMounted, page, date, useLiveDuration]);
 
     const handleTab = React.useCallback(
@@ -75,7 +84,7 @@ const RankingsView = ({ match }) => {
             <Paper>
                 {game === undefined ? (
                     <LinearProgress />
-                ) : game.length === 0 ? (
+                ) : game === null || game.length === 0 ? (
                     <SimpleTitle data="No data." />
                 ) : (
                     <>
@@ -116,13 +125,31 @@ const RankingsView = ({ match }) => {
                                             <Grid item xs={12} md={6} className={classes.padTop}>
                                                 <Grid container direction="column" justify="center">
                                                     <Grid item xs={12}>
-                                                        <RecordsChart
-                                                            title="WRs"
-                                                            labels={game[tab].stats[type].map(
-                                                                (row) => row.user.name,
-                                                            )}
-                                                            series={game[tab].stats[type].map((row) => row.wrs)}
-                                                        />
+                                                        {type === 'uniqueLeaderboard' ? (
+                                                            <UniqueRecordsChart
+                                                                title="WRs"
+                                                                labels={game[tab].stats[type]
+                                                                    .map((row) => row.user.name)
+                                                                    .slice(0, 20)}
+                                                                series={[
+                                                                    {
+                                                                        name: 'Unique WRs',
+                                                                        data: game[tab].stats[type]
+                                                                            .slice(0, 20)
+                                                                            .map((row) => row.wrs),
+                                                                    },
+                                                                ]}
+                                                            />
+                                                        ) : (
+                                                            <RecordsChart
+                                                                title="WRs"
+                                                                labels={game[tab].stats[type].map(
+                                                                    (row) => row.user.name,
+                                                                )}
+                                                                series={game[tab].stats[type].map((row) => row.wrs)}
+                                                                rest={type === 'historyLeaderboard'}
+                                                            />
+                                                        )}
                                                     </Grid>
                                                     <Grid item xs={12} className={classes.padTop}></Grid>
                                                 </Grid>

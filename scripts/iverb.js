@@ -16,15 +16,23 @@ Array.prototype.chunk = function (size) {
     }, []);
 };
 
-const findPartners = (entry, prevEntry, nextEntry) => {
+const findPartners = (entry, index, items) => {
+    const prevEntry = items[index + 1];
+    const nextEntry = items[index - 1];
+
     if (prevEntry && entry.score === prevEntry.score) {
         if (
             moment(entry.date).isBetween(moment(prevEntry.date).add(-1, 'hour'), moment(prevEntry.date).add(1, 'hour'))
         ) {
+            const beatenBy = items.slice(0, index).reverse().find((item) => item.score < entry.score);
+
             entry.isPartner = true;
             entry.delta = prevEntry.delta;
             entry.partnerId = prevEntry.id;
+            entry.beatenBy = { id: beatenBy ? beatenBy.id : null };
+            entry.duration = moment(beatenBy ? beatenBy.date : undefined).diff(moment(entry.date), 'd');
             prevEntry.partnerId = entry.id;
+            prevEntry.beatenBy = entry.beatenBy;
             prevEntry.duration = entry.duration;
             prevEntry.isPartner = false;
         } else if (
@@ -58,18 +66,38 @@ const asHistory = (entry, prevEntry, nextEntry) => ({
 
 const asWr = (entry, prevEntry) => asHistory(entry, prevEntry);
 
+const fetchNewEntries = async (latestId) => {
+    const changelog = await Portal2Boards.changelog({
+        maxDaysAgo: 8,
+    });
+
+    let index = 0;
+
+    for (const { id } of changelog) {
+        if (id === latestId) {
+            return changelog.slice(0, index);
+        }
+
+        ++index;
+    }
+
+    throw new Error('Failed to find last changelog entry.');
+};
+
 const main = async (outputDir, snapshot = true) => {
     const cache = importJson(cacheFile);
 
-    //const latest = importJson(`${outputDir}/latest.json`);
+    /* try {
+        const latestId = cache.changelog[0].id;
+        const newEntries = await fetchNewEntries(latestId);
 
-    /* const cache = {};
-    cache.changelog = await Portal2Boards.changelog({
-        maxDaysAgo: 3333,
-        
-    });
-    tryExportJson(cacheFile, cache, true, false);
-    */
+        cache.changelog.unshift(...newEntries);
+        tryExportJson(cacheFile, cache, true, false);
+
+        console.log(`updated changelog with ${newEntries.length} new entries`);
+    } catch (error) {
+        console.error(error);
+    } */
 
     const { changelog } = cache;
 
@@ -90,14 +118,12 @@ const main = async (outputDir, snapshot = true) => {
 
             const campaignMap = {
                 map,
-                wrs: wrs.map((wr, index, items) => asWr(wr, items[index + 1])),
-                history: history.map((history, index, items) => asHistory(history, items[index + 1], items[index - 1])),
+                wrs: wrs.map((item, index, items) => asWr(item, items[index + 1])),
+                history: history.map((item, index, items) => asHistory(item, items[index + 1], items[index - 1])),
             };
 
             if (map.type === Portal2MapType.Cooperative) {
-                campaignMap.history.forEach((history, index, items) =>
-                    findPartners(history, items[index + 1], items[index - 1]),
-                );
+                campaignMap.history.forEach(findPartners);
             }
 
             campaign.push(campaignMap);
@@ -164,10 +190,10 @@ const generateStats = (overall) => {
 
     const largestImprovement = mapWrs
         .sort((a, b) => (a.delta === b.delta ? 0 : a.delta < b.delta ? 1 : -1))
-        .slice(0, 10);
+        .slice(0, 100);
     const longestLasting = mapWrs
         .sort((a, b) => (a.duration === b.duration ? 0 : a.duration < b.duration ? 1 : -1))
-        .slice(0, 10);
+        .slice(0, 100);
 
     return { largestImprovement, longestLasting };
 };

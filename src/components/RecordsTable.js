@@ -96,11 +96,12 @@ const useRowStyles = makeStyles((theme) => ({
     },
 }));
 
-const RecordsHistoryRow = ({ wr }) => {
+const RecordsHistoryRow = ({ wr, useLiveDuration }) => {
     const score = formatScore(wr.score);
     const delta = wr.delta !== null ? formatScore(wr.delta) : null;
 
     const renderCell = wr.isPartner !== false || !wr.partnerId;
+    const isCurrentWr = wr.beatenBy.id === null;
 
     return (
         <TableRow tabIndex={-1}>
@@ -118,11 +119,6 @@ const RecordsHistoryRow = ({ wr }) => {
                     {score}
                 </MinTableCell>
             )}
-            {renderCell && (
-                <MinTableCell align="left" rowSpan={wr.isPartner === true ? 2 : 1}>
-                    {delta ? '-' + delta : ''}
-                </MinTableCell>
-            )}
             <MinTableCell align="left">
                 <Link
                     color="inherit"
@@ -133,7 +129,23 @@ const RecordsHistoryRow = ({ wr }) => {
                     {wr.user.name}
                 </Link>
             </MinTableCell>
-            <MinTableCell align="left">
+            {renderCell && (
+                <MinTableCell align="left" rowSpan={wr.isPartner === true ? 2 : 1}>
+                    {delta ? '-' + delta : ''}
+                </MinTableCell>
+            )}
+            {renderCell && (
+                <MinTableCell align="left" rowSpan={wr.isPartner === true ? 2 : 1}>
+                    <Tooltip title="in days" placement="bottom-end" enterDelay={300}>
+                        {useLiveDuration && isCurrentWr ? (
+                            <Moment style={noWrap} diff={wr.date} unit="days"></Moment>
+                        ) : (
+                            <span>{wr.duration}</span>
+                        )}
+                    </Tooltip>
+                </MinTableCell>
+            )}
+            <MinTableCell align="left" style={noWrap}>
                 {wr.demo && (
                     <Tooltip title="Download Demo" placement="bottom" enterDelay={300}>
                         <IconButton
@@ -236,7 +248,7 @@ const RecordsRow = ({ wr, orderBy, useLiveDuration, history, onClickHistory }) =
                         )}
                     </Tooltip>
                 </MinTableCell>
-                <MinTableCell align="left">
+                <MinTableCell align="left" style={noWrap}>
                     {wr.demo && (
                         <Tooltip title="Download Demo" placement="bottom" enterDelay={300}>
                             <IconButton
@@ -290,13 +302,20 @@ const RecordsRow = ({ wr, orderBy, useLiveDuration, history, onClickHistory }) =
                                         <TableRow>
                                             <MinTableCell>Date</MinTableCell>
                                             <MinTableCell>Record</MinTableCell>
+                                            <MinTableCell>Player</MinTableCell>
                                             <MinTableCell>Timesave</MinTableCell>
-                                            <MinTableCell colSpan={2}>Player</MinTableCell>
+                                            <MinTableCell colSpan={2}>Duration</MinTableCell>
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
                                         {wr.map.history.map((historyWr, idx) => {
-                                            return <RecordsHistoryRow wr={historyWr} key={idx} />;
+                                            return (
+                                                <RecordsHistoryRow
+                                                    wr={historyWr}
+                                                    key={idx}
+                                                    useLiveDuration={useLiveDuration}
+                                                />
+                                            );
                                         })}
                                     </TableBody>
                                 </Table>

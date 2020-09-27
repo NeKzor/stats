@@ -33,7 +33,7 @@ const RecordsView = ({ match }) => {
 
     const page = match.params[0];
     const date = match.params.date;
-    const useLiveDuration = date === undefined || date === 'latest';
+    const live = date === undefined || date === 'latest';
 
     React.useEffect(() => {
         setTab(0);
@@ -41,56 +41,109 @@ const RecordsView = ({ match }) => {
     }, [page]);
 
     React.useEffect(() => {
-        (async () => {
-            const game = (await Api.request('records', date)).campaigns;
+        Api.request('records')
+            .then(({ campaigns }) => {
+                const snapshotDate = moment(date, ['YYYY-MM-DD']);
+                const snapshot = !live && snapshotDate.isValid();
 
-            for (const campaign of game) {
-                const rows = [];
+                if (snapshot) {
+                    for (const campaign of campaigns) {
+                        for (const map of campaign.maps) {
+                            map.history = map.history.filter(({ date }) => moment(date).diff(snapshotDate, 'd') <= 0);
 
-                let index = 0;
-                for (const { map, wrs, history } of campaign.maps) {
-                    for (const wr of wrs) {
-                        const wrDate = moment(wr.date);
-                        const duration = useLiveDuration ? moment().diff(wrDate, 'd') : wr.duration;
+                            const currentWr = map.history[map.history.length - 1];
+                            map.wrs = map.history.filter((wr) => wr.score === currentWr.score);
+                            map.wrs.forEach((wr) => {
+                                wr.beatenBy = { id: null };
+                                wr.duration = snapshotDate.diff(moment(wr.date), 'd');
+                            });
+                        }
 
-                        rows.push({
-                            map: {
-                                id: map.bestTimeId,
-                                name: map.alias,
-                                isFirst: wr === wrs[0],
-                                isLast: wr === wrs[wrs.length - 1],
-                                records: wrs.length,
-                                history,
-                                index,
-                            },
-                            ...wr,
-                            duration,
-                        });
+                        const totalTime = campaign.maps.map((t) => t.wrs[0].score).reduce((a, b) => a + b, 0);
+
+                        const users = campaign.maps
+                            .map((t) => t.wrs.map((r) => r.user))
+                            .reduce((acc, val) => acc.concat(val), []);
+                        const wrs = campaign.maps.map((t) => t.wrs).reduce((acc, val) => acc.concat(val), []);
+
+                        const frequency = users.reduce((count, user) => {
+                            count[user.id] = (count[user.id] || 0) + 1;
+                            return count;
+                        }, {});
+
+                        const leaderboard = Object.keys(frequency)
+                            .sort((a, b) => frequency[b] - frequency[a])
+                            .map((key) => ({
+                                user: users.find((u) => u.id === key),
+                                wrs: frequency[key],
+                                duration: snapshot
+                                    ? wrs
+                                          .filter((r) => r.user.id === key)
+                                          .map((r) => r.duration)
+                                          .reduce((a, b) => a + b, 0)
+                                    : undefined,
+                            }));
+
+                        campaign.stats = {
+                            totalTime,
+                            leaderboard,
+                        };
+                    }
+                }
+
+                for (const campaign of campaigns) {
+                    const rows = [];
+
+                    let index = 0;
+                    for (const { map, wrs, history } of campaign.maps) {
+                        for (const wr of wrs) {
+                            const wrDate = moment(wr.date);
+                            const duration = live ? moment().diff(wrDate, 'd') : wr.duration;
+
+                            rows.push({
+                                map: {
+                                    id: map.bestTimeId,
+                                    name: map.alias,
+                                    isFirst: wr === wrs[0],
+                                    isLast: wr === wrs[wrs.length - 1],
+                                    records: wrs.length,
+                                    history,
+                                    index,
+                                },
+                                ...wr,
+                                duration,
+                            });
+                        }
+
+                        ++index;
                     }
 
-                    ++index;
+                    campaign.maps = rows;
+
+                    if (live) {
+                        campaign.stats.leaderboard.forEach((entry, idx) => {
+                            campaign.stats.leaderboard[idx].duration = campaign.maps
+                                .filter((r) => r.user.id === entry.user.id)
+                                .map((r) => r.duration)
+                                .reduce((a, b) => a + b, 0);
+                        });
+                    }
                 }
 
-                campaign.maps = rows;
-
-                if (useLiveDuration) {
-                    campaign.stats.leaderboard.forEach((entry, idx) => {
-                        campaign.stats.leaderboard[idx].duration = campaign.maps
-                            .filter((r) => r.user.id === entry.user.id)
-                            .map((r) => r.duration)
-                            .reduce((a, b) => a + b, 0);
-                    });
+                if (isMounted.current) {
+                    setGame(campaigns);
                 }
-            }
+            })
+            .catch((error) => {
+                console.error(error);
 
-            if (!isMounted.current) return;
-            setGame(game);
-        })();
-    }, [isMounted, page, date, useLiveDuration]);
+                if (isMounted.current) {
+                    setGame(null);
+                }
+            });
+    }, [isMounted, page, date, live]);
 
-    const handleTab = (_, newValue) => {
-        setTab(newValue);
-    };
+    const handleTab = React.useCallback((_, newValue) => setTab(newValue), [setTab]);
 
     const classes = useStyles();
 
@@ -99,7 +152,7 @@ const RecordsView = ({ match }) => {
             <Paper>
                 {game === undefined ? (
                     <LinearProgress />
-                ) : game.length === 0 ? (
+                ) : game === null || game.length === 0 ? (
                     <SimpleTitle data="No data." />
                 ) : (
                     <>
@@ -124,7 +177,7 @@ const RecordsView = ({ match }) => {
                                         <RecordsTable
                                             data={game[tab].maps}
                                             stats={game[tab].stats}
-                                            useLiveDuration={useLiveDuration}
+                                            useLiveDuration={live}
                                         />
                                     </Grid>
                                     <Grid item xs={12} className={classes.padTop}>
@@ -132,7 +185,7 @@ const RecordsView = ({ match }) => {
                                             <Grid item xs={12} md={6}>
                                                 <RankingsTable
                                                     data={game[tab].stats.leaderboard}
-                                                    useLiveDuration={useLiveDuration}
+                                                    useLiveDuration={live}
                                                 />
                                             </Grid>
                                             <Grid item xs={12} md={6} className={classes.padTop}>
