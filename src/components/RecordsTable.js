@@ -2,10 +2,8 @@ import React from 'react';
 import Moment from 'react-moment';
 import moment from 'moment';
 import { makeStyles } from '@material-ui/core/styles';
-import Avatar from '@material-ui/core/Avatar';
 import Box from '@material-ui/core/Box';
 import Collapse from '@material-ui/core/Collapse';
-import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
 import Link from '@material-ui/core/Link';
 import Table from '@material-ui/core/Table';
@@ -19,6 +17,7 @@ import Typography from '@material-ui/core/Typography';
 import SaveAltIcon from '@material-ui/icons/SaveAlt';
 import HistoryIcon from '@material-ui/icons/History';
 import YouTubeIcon from '@material-ui/icons/YouTube';
+import PlayerAvatar from './PlayerAvatar';
 import { stableSort } from '../utils/stableSort';
 import { formatScore, getDateDifferenceColor } from '../utils/tools';
 
@@ -220,17 +219,7 @@ const RecordsRow = ({ wr, orderBy, useLiveDuration, history, onClickHistory }) =
                     </MinTableCell>
                 )}
                 <MinTableCell align="left">
-                    <Grid container direction="row" alignItems="center">
-                        <Avatar className={classes.avatar} src={wr.user.avatar} />
-                        <Link
-                            color="inherit"
-                            href={`https://board.iverb.me/profile/${wr.user.id}`}
-                            rel="noreferrer"
-                            target="_blank"
-                        >
-                            {wr.user.name}
-                        </Link>
-                    </Grid>
+                    <PlayerAvatar user={wr.user} />
                 </MinTableCell>
                 <MinTableCell align="left">
                     <Tooltip title={<Moment fromNow>{wr.date}</Moment>} placement="bottom-end" enterDelay={300}>

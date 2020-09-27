@@ -1,8 +1,5 @@
 import React from 'react';
-import Avatar from '@material-ui/core/Avatar';
-import Link from '@material-ui/core/Link';
 import { makeStyles } from '@material-ui/core/styles';
-import Grid from '@material-ui/core/Grid';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
@@ -11,6 +8,7 @@ import TableRow from '@material-ui/core/TableRow';
 import TableSortLabel from '@material-ui/core/TableSortLabel';
 import Tooltip from '@material-ui/core/Tooltip';
 import { stableSort, stableSortSort } from '../utils/stableSort';
+import PlayerAvatar from './PlayerAvatar';
 
 const rows = [
     { id: 'user.name', sortable: false, label: 'Player', align: 'left' },
@@ -58,11 +56,6 @@ const useStyles = makeStyles((theme) => ({
     root: {
         overflowX: 'auto',
     },
-    avatar: {
-        width: theme.spacing(3),
-        height: theme.spacing(3),
-        marginRight: 10,
-    },
 }));
 
 const defaultState = {
@@ -73,7 +66,6 @@ const defaultState = {
     rowsPerPage: 50,
 };
 
-const noWrap = { whiteSpace: 'nowrap' };
 const minifiedStyle = { padding: '7px 0px 7px 16px' };
 const MinTableCell = (props) => <TableCell style={minifiedStyle} {...props} />;
 
@@ -104,31 +96,19 @@ const RecordsTable = ({ data, showDuration }) => {
                     showDuration={showDuration}
                 />
                 <TableBody>
-                    {(showDuration ? stableSortSort : stableSort)(data, order, orderBy, thenBy)
-                        .map((row) => (
-                            <TableRow tabIndex={-1} key={row.user.id}>
+                    {(showDuration ? stableSortSort : stableSort)(data, order, orderBy, thenBy).map((row) => (
+                        <TableRow tabIndex={-1} key={row.user.id}>
+                            <MinTableCell align="left">
+                                <PlayerAvatar user={row.user} />
+                            </MinTableCell>
+                            <MinTableCell align="left">{row.wrs}</MinTableCell>
+                            {showDuration && (
                                 <MinTableCell align="left">
-                                    <Grid container direction="row" alignItems="center">
-                                        <Avatar className={classes.avatar} src={row.user.avatar} />
-                                        <Link
-                                            style={noWrap}
-                                            color="inherit"
-                                            href={'https://board.iverb.me/profile/' + row.user.id}
-                                            rel="noreferrer"
-                                            target="_blank"
-                                        >
-                                            {row.user.name}
-                                        </Link>
-                                    </Grid>
+                                    {row.duration} day{row.duration === 1 ? '' : 's'}
                                 </MinTableCell>
-                                <MinTableCell align="left">{row.wrs}</MinTableCell>
-                                {showDuration && (
-                                    <MinTableCell align="left">
-                                        {row.duration} day{row.duration === 1 ? '' : 's'}
-                                    </MinTableCell>
-                                )}
-                            </TableRow>
-                        ))}
+                            )}
+                        </TableRow>
+                    ))}
                 </TableBody>
             </Table>
         </div>
