@@ -13,6 +13,7 @@ import AppState, { AppReducer } from './AppState';
 import RecordsView from './views/RecordsView';
 import RankingsView from './views/RankingsView';
 import StatsView from './views/StatsView';
+import RaceView from './views/RaceView';
 
 const useStyles = makeStyles((theme) => ({
     views: {
@@ -59,6 +60,7 @@ const App = () => {
                             <Route exact path="/records/:date?" component={RecordsView} />
                             <Route exact path="/ranks/:date?" component={RankingsView} />
                             <Route exact path="/stats/:date?" component={StatsView} />
+                            <Route exact path="/race/:date?" component={RaceView} />
                             <Route exact path="/about" component={AboutView} />
                             <Route exact path="/demo" component={DemoView} />
                             <Route component={NotFoundView} />

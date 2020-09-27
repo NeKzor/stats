@@ -48,6 +48,7 @@ const pageLinks = [
     { title: 'Records', link: '/records', inDrawer: true, default: true },
     { title: 'Rankings', link: '/ranks', inDrawer: true, default: true },
     { title: 'Statistics', link: '/stats', inDrawer: true, default: true },
+    { title: 'Race', link: '/race', inDrawer: true, default: true },
     { title: 'Demo Inspection', link: '/demo', inDrawer: false },
     { title: 'About', link: '/about', inDrawer: false },
 ];

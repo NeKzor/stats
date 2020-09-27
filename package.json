@@ -18,6 +18,7 @@
         "@material-ui/icons": "^4.9.1",
         "@material-ui/lab": "^4.0.0-alpha.56",
         "apexcharts": "^3.20.1",
+        "chart-race-react": "^1.0.2",
         "d3-scale": "^3.2.2",
         "gh-pages": "^2.2.0",
         "moment": "^2.27.0",
