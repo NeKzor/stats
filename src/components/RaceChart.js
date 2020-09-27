@@ -1,10 +1,6 @@
 import BarChart from 'chart-race-react';
 
 class RaceChart extends BarChart {
-    constructor(...props) {
-        super(...props);
-    }
-
     update = () => {
         // Added props.start check for manual pauses
         if (this.state.idx + 1 === this.props.timeline.length || !this.props.start) {
