@@ -3,7 +3,7 @@ class Api {
         this.baseApi =
             process.env.NODE_ENV === 'development'
                 ? 'http://localhost:8080'
-                : 'https://raw.githubusercontent.com/NeKzor/nekzor.github.io/master/iverb-stats';
+                : 'https://raw.githubusercontent.com/NeKzBot/iverb-stats/api';
     }
     async request(route, date) {
         const res = await fetch(`${this.baseApi}/${route}/${date || 'latest'}.json`);
