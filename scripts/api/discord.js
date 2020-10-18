@@ -1,7 +1,24 @@
 const Discord = require('discord.js');
+const moment = require('moment');
+
+const formatScore = (score) => {
+    if (score === undefined || score === null) {
+        return score;
+    }
+
+    let csec = score % 100;
+    let tsec = Math.floor(score / 100);
+    let sec = tsec % 60;
+    let min = Math.floor(tsec / 60);
+
+    return (min > 0 ? min + ':' : '') + (sec < 10 && min > 0 ? '0' + sec : sec) + '.' + (csec < 10 ? '0' + csec : csec);
+};
 
 class DiscordIntegration {
     constructor(id, token) {
+        if (!id) throw new Error('missing id');
+        if (!token) throw new Error('missing token');
+
         this.client = new Discord.WebhookClient(id, token);
         this.username = 'board.iverb.me';
     }
@@ -11,12 +28,55 @@ class DiscordIntegration {
             .then(console.log)
             .catch(console.error);
     }
-    buildEmbed() {
+    destroy() {
+        this.client.destroy();
+    }
+    buildEmbed({
+        mostWorldRecords,
+        largestImprovement,
+        mostPersonalRecords,
+        mostDemoUploads,
+        mostYouTubeLinks,
+        mostActiveMaps,
+    }) {
         return {
-            title: 'Weekly Recap',
-            url: 'https://nekz.me/stats',
-            color: 44871,
-            fields: [],
+            title: `Recap Week #${moment().isoWeek()}`,
+            url: 'https://board.iverb.me',
+            color: 295077,
+            fields: [
+                {
+                    name: 'Most World Records',
+                    value: mostWorldRecords.map(({ user, wrs }) => `${user.name} - ${wrs}`).join('\n'),
+                    inline: true,
+                },
+                {
+                    name: 'Top Demo Uploaders',
+                    value: mostDemoUploads.map(({ user, prs }) => `${user.name} - ${prs}`).join('\n'),
+                    inline: true,
+                },
+                {
+                    name: 'Top World Record Timesaves',
+                    value: largestImprovement
+                        .map(({ user, map, delta }) => `-${formatScore(delta)} on ${map.alias} by ${user.name}`)
+                        .join('\n'),
+                    inline: true,
+                },
+                {
+                    name: 'Most Personal Records',
+                    value: mostPersonalRecords.map(({ user, prs }) => `${user.name} - ${prs}`).join('\n'),
+                    inline: true,
+                },
+                {
+                    name: 'Top Video Uploaders',
+                    value: mostYouTubeLinks.map(({ user, prs }) => `${user.name} - ${prs}`).join('\n'),
+                    inline: true,
+                },
+                {
+                    name: 'Most Records By Map',
+                    value: mostActiveMaps.map(({ map, count }) => `${map.alias} - ${count}`).join('\n'),
+                    inline: true,
+                },
+            ],
         };
     }
     static getTestData() {

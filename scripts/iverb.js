@@ -3,18 +3,12 @@ const moment = require('moment');
 const { log, tryExportJson, tryMakeDir, importJson } = require('./utils');
 const Portal2Boards = require('./api/client');
 const { Portal2Map, Portal2MapType } = require('./api/portal2');
+const recapCommunity = require('./community');
+const DiscordIntegration = require('./api/discord');
 
 require('dotenv').config();
 
 const cacheFile = path.join(__dirname, '../cache.json');
-
-Array.prototype.chunk = function (size) {
-    return this.reduce((acc, val, idx) => {
-        const chunk = Math.floor(idx / size);
-        acc[chunk] = [].concat(acc[chunk] || [], val);
-        return acc;
-    }, []);
-};
 
 const findPartners = (entry, index, items) => {
     const prevEntry = items[index + 1];
@@ -24,7 +18,10 @@ const findPartners = (entry, index, items) => {
         if (
             moment(entry.date).isBetween(moment(prevEntry.date).add(-1, 'hour'), moment(prevEntry.date).add(1, 'hour'))
         ) {
-            const beatenBy = items.slice(0, index).reverse().find((item) => item.score < entry.score);
+            const beatenBy = items
+                .slice(0, index)
+                .reverse()
+                .find((item) => item.score < entry.score);
 
             entry.isPartner = true;
             entry.delta = prevEntry.delta;
@@ -84,10 +81,10 @@ const fetchNewEntries = async (latestId) => {
     throw new Error('Failed to find last changelog entry.');
 };
 
-const main = async (outputDir, snapshot = true) => {
+const main = async (outputDir) => {
     const cache = importJson(cacheFile);
 
-    /* try {
+    try {
         const latestId = cache.changelog[0].id;
         const newEntries = await fetchNewEntries(latestId);
 
@@ -97,7 +94,7 @@ const main = async (outputDir, snapshot = true) => {
         console.log(`updated changelog with ${newEntries.length} new entries`);
     } catch (error) {
         console.error(error);
-    } */
+    }
 
     const { changelog } = cache;
 
@@ -142,7 +139,7 @@ const main = async (outputDir, snapshot = true) => {
                 name: 'Cooperative',
                 maps: generateCampaign(Portal2Map.cooperativeMaps()),
             },
-        ].map((campaign) => generateRankings(campaign, snapshot, false)),
+        ].map((campaign) => generateRankings(campaign, false)),
     };
 
     tryMakeDir(outputDir);
@@ -154,20 +151,32 @@ const main = async (outputDir, snapshot = true) => {
         maps: game.campaigns.map((campaign) => campaign.maps).reduce((acc, val) => acc.concat(...val), []),
     };
 
+    const discord = new DiscordIntegration(process.env.DISCORD_WEBHOOK_ID, process.env.DISCORD_WEBHOOK_TOKEN);
+
+    try {
+        const snapshotRange = [moment().add(-7, 'days'), moment()];
+
+        discord
+            .sendWebhook({
+                ...recap(overall, snapshotRange),
+                ...(await recapCommunity(cache, snapshotRange)),
+            })
+            .then(() => discord.destroy());
+    } catch (error) {
+        discord.destroy();
+        console.error(error);
+    }
+
     tryMakeDir(`${outputDir}/stats`);
     tryExportJson(`${outputDir}/stats/latest.json`, generateStats(overall), true);
 
     game.campaigns.push(overall);
 
-    game.campaigns.forEach((campaign) => generateRankings(campaign, snapshot, true));
+    game.campaigns.forEach((campaign) => generateRankings(campaign, true));
     game.campaigns.forEach((campaign) => delete campaign.maps);
 
     tryMakeDir(`${outputDir}/ranks`);
     tryExportJson(`${outputDir}/ranks/latest.json`, game, true);
-
-    /* if (snapshot) {
-        tryExportJson(`${outputDir}/${moment().format('YYYY-MM-DD')}.json`, game, true);
-    } */
 };
 
 const generateStats = (overall) => {
@@ -198,7 +207,7 @@ const generateStats = (overall) => {
     return { largestImprovement, longestLasting };
 };
 
-const generateRankings = (campaign, snapshot, statsPage) => {
+const generateRankings = (campaign, statsPage) => {
     const totalTime = campaign.maps.map((t) => t.wrs[0].score).reduce((a, b) => a + b, 0);
 
     let users = campaign.maps.map((t) => t.wrs.map((r) => r.user)).reduce((acc, val) => acc.concat(val), []);
@@ -214,12 +223,10 @@ const generateRankings = (campaign, snapshot, statsPage) => {
         .map((key) => ({
             user: users.find((u) => u.id === key),
             wrs: frequency[key],
-            duration: snapshot
-                ? wrs
+            duration: wrs
                       .filter((r) => r.user.id === key)
                       .map((r) => r.duration)
                       .reduce((a, b) => a + b, 0)
-                : undefined,
         }));
 
     if (!statsPage) {
@@ -243,12 +250,10 @@ const generateRankings = (campaign, snapshot, statsPage) => {
         .map((key) => ({
             user: users.find((u) => u.id === key),
             wrs: frequency[key],
-            duration: snapshot
-                ? wrs
+            duration: wrs
                       .filter((r) => r.user.id === key)
                       .map((r) => r.duration)
                       .reduce((a, b) => a + b, 0)
-                : undefined,
         }));
 
     users = campaign.maps
@@ -279,10 +284,61 @@ const generateRankings = (campaign, snapshot, statsPage) => {
     return campaign;
 };
 
+const recap = (campaign, snapshotRange) => {
+    const [snapshotStart, snapshotEnd] = snapshotRange;
+
+    const wrs = campaign.maps
+        .map((t) => t.history)
+        .reduce((acc, val) => acc.concat(val), [])
+        .filter(({ date }) => moment(date).isBetween(snapshotStart, snapshotEnd));
+
+    const mapWrs = campaign.maps
+        .map((t) => {
+            return t.history
+                .filter(({ date }) => moment(date).isBetween(snapshotStart, snapshotEnd))
+                .map((wr) => {
+                    wr.map = t.map;
+                    return wr;
+                });
+        })
+        .reduce((acc, val) => acc.concat(val), []);
+
+    mapWrs.forEach((wr) => {
+        if (wr.beatenBy.id) {
+            const newWr = mapWrs.find(({ id }) => id === wr.beatenBy.id);
+            wr.beatenBy.date = newWr.date;
+            wr.beatenBy.user = { ...newWr.user };
+        }
+    });
+
+    const largestImprovement = mapWrs
+        .sort((a, b) => (a.delta === b.delta ? 0 : a.delta < b.delta ? 1 : -1))
+        .slice(0, 3);
+
+    const users = wrs.map((t) => t.user);
+
+    const frequency = users.reduce((count, user) => {
+        count[user.id] = (count[user.id] || 0) + 1;
+        return count;
+    }, {});
+
+    const mostWorldRecords = Object.keys(frequency)
+        .sort((a, b) => frequency[b] - frequency[a])
+        .map((key) => ({
+            user: users.find((u) => u.id === key),
+            wrs: frequency[key],
+        }));
+
+    return {
+        mostWorldRecords,
+        largestImprovement,
+    };
+};
+
 const inspect = (obj) => console.dir(obj, { depth: 6 });
 
 if (process.argv[2] === '--test') {
-    main(path.join(__dirname, '../api/'), true).catch(inspect);
+    main(path.join(__dirname, '../api/')).catch(inspect);
 }
 
 module.exports = main;
