@@ -11,8 +11,9 @@ import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import { makeStyles } from '@material-ui/core';
 import FloatingActionButton from '../components/FloatingActionButton';
-import LargestImprovement from '../components/LargestImprovement';
+import LongestDomination from '../components/LongestDomination';
 import LongestLasting from '../components/LongestLasting';
+import LargestImprovement from '../components/LargestImprovement';
 import SimpleTitle from '../components/SimpleTitle';
 import Api from '../Api';
 import { useIsMounted } from '../Hooks';
@@ -67,6 +68,8 @@ const StatsView = ({ match }) => {
 
     const StatsComponent = (() => {
         switch (type) {
+            case 'longestDomination':
+                return LongestDomination;
             case 'longestLasting':
                 return LongestLasting;
             case 'largestImprovement':
@@ -93,6 +96,7 @@ const StatsView = ({ match }) => {
                                     <InputLabel>Stats Type</InputLabel>
                                     <Select value={type} onChange={onChangeType}>
                                         <MenuItem value={'longestLasting'}>Longest Lasting</MenuItem>
+                                        <MenuItem value={'longestDomination'}>Longest Domination</MenuItem>
                                         <MenuItem value={'largestImprovement'}>Largest Improvement</MenuItem>
                                     </Select>
                                 </FormControl>

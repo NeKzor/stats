@@ -26,10 +26,10 @@ const findPartners = (entry, index, items) => {
             entry.isPartner = true;
             entry.delta = prevEntry.delta;
             entry.partnerId = prevEntry.id;
-            entry.beatenBy = { id: beatenBy ? beatenBy.id : null };
+            entry.beatenBy = { id: beatenBy ? beatenBy.partnerId : null };
             entry.duration = moment(beatenBy ? beatenBy.date : undefined).diff(moment(entry.date), 'd');
             prevEntry.partnerId = entry.id;
-            prevEntry.beatenBy = entry.beatenBy;
+            prevEntry.beatenBy = { id: beatenBy ? beatenBy.id : null };
             prevEntry.duration = entry.duration;
             prevEntry.isPartner = false;
         } else if (
@@ -65,7 +65,7 @@ const asWr = (entry, prevEntry) => asHistory(entry, prevEntry);
 
 const fetchNewEntries = async (latestId) => {
     const changelog = await Portal2Boards.changelog({
-        maxDaysAgo: 8,
+        maxDaysAgo: 1,
     });
 
     let index = 0;
@@ -81,7 +81,7 @@ const fetchNewEntries = async (latestId) => {
     throw new Error('Failed to find last changelog entry.');
 };
 
-const main = async (outputDir) => {
+const main = async (outputDir, weeklyRecap) => {
     const cache = importJson(cacheFile);
 
     try {
@@ -101,6 +101,8 @@ const main = async (outputDir) => {
     const records = changelog.filter((entry) => {
         return entry.wr_gain === '1' && entry.banned === '0';
     });
+
+    const avatarCache = new Map();
 
     const generateCampaign = (maps) => {
         const campaign = [];
@@ -123,8 +125,28 @@ const main = async (outputDir) => {
                 campaignMap.history.forEach(findPartners);
             }
 
+            campaignMap.history.forEach((wr) => {
+                const cache = avatarCache.get(wr.user.id);
+
+                if (!cache || wr.date > cache.date) {
+                    avatarCache.set(wr.user.id, {
+                        date: wr.date,
+                        avatar: wr.user.avatar,
+                    });
+                }
+            });
+
             campaign.push(campaignMap);
         }
+
+        campaign.forEach((campaign) => {
+            campaign.history.forEach((wr) => {
+                wr.user.avatar = avatarCache.get(wr.user.id).avatar;
+            });
+            campaign.wrs.forEach((wr) => {
+                wr.user.avatar = avatarCache.get(wr.user.id).avatar;
+            });
+        });
 
         return campaign;
     };
@@ -151,7 +173,7 @@ const main = async (outputDir) => {
         maps: game.campaigns.map((campaign) => campaign.maps).reduce((acc, val) => acc.concat(...val), []),
     };
 
-    if (recap) {
+    if (weeklyRecap) {
         const discord = new DiscordIntegration(process.env.DISCORD_WEBHOOK_ID, process.env.DISCORD_WEBHOOK_TOKEN);
 
         try {
@@ -202,14 +224,65 @@ const generateStats = (overall) => {
         }
     });
 
+    const getNextDuration = (wr) => {
+        if (wr.beatenBy.id && wr.id !== wr.beatenBy.id && wr.beatenBy.user.id === wr.user.id) {
+            const newWr = mapWrs.find(({ id }) => id === wr.beatenBy.id);
+            if (newWr) {
+                newWr.excludeReign = true;
+                const [nextDuration, lastWr] = getNextDuration(newWr);
+                return [wr.duration + nextDuration, lastWr];
+            }
+        }
+
+        return [wr.duration, wr];
+    };
+
+    const regignDuration = (wr) => {
+        const [duration, lastWr] = getNextDuration(wr);
+
+        wr.reign = {
+            duration,
+            lastWr: {
+                ...lastWr,
+            },
+        };
+
+        return wr;
+    };
+
+    const maxRows = 100;
+
     const largestImprovement = mapWrs
         .sort((a, b) => (a.delta === b.delta ? 0 : a.delta < b.delta ? 1 : -1))
-        .slice(0, 100);
+        .slice(0, maxRows);
     const longestLasting = mapWrs
         .sort((a, b) => (a.duration === b.duration ? 0 : a.duration < b.duration ? 1 : -1))
-        .slice(0, 100);
+        .slice(0, maxRows);
+    const longestDomination = mapWrs
+        .map(regignDuration)
+        .map((wr) => {
+            reignWr =
+                !wr.excludeReign && wr.reign.lastWr
+                    ? {
+                          ...wr,
+                          duration: wr.reign.duration,
+                          beatenBy: wr.reign.lastWr.beatenBy,
+                          lastScore: wr.reign.lastWr.score,
+                          excludeReign: undefined,
+                          reign: undefined,
+                      }
+                    : null;
 
-    return { largestImprovement, longestLasting };
+            delete wr.reign;
+            delete wr.excludeReign;
+
+            return reignWr;
+        })
+        .filter((wr) => wr)
+        .sort((a, b) => (a.duration === b.duration ? 0 : a.duration < b.duration ? 1 : -1))
+        .slice(0, maxRows);
+
+    return { largestImprovement, longestLasting, longestDomination };
 };
 
 const generateRankings = (campaign, statsPage) => {
@@ -229,9 +302,9 @@ const generateRankings = (campaign, statsPage) => {
             user: users.find((u) => u.id === key),
             wrs: frequency[key],
             duration: wrs
-                      .filter((r) => r.user.id === key)
-                      .map((r) => r.duration)
-                      .reduce((a, b) => a + b, 0)
+                .filter((r) => r.user.id === key)
+                .map((r) => r.duration)
+                .reduce((a, b) => a + b, 0),
         }));
 
     if (!statsPage) {
@@ -256,9 +329,9 @@ const generateRankings = (campaign, statsPage) => {
             user: users.find((u) => u.id === key),
             wrs: frequency[key],
             duration: wrs
-                      .filter((r) => r.user.id === key)
-                      .map((r) => r.duration)
-                      .reduce((a, b) => a + b, 0)
+                .filter((r) => r.user.id === key)
+                .map((r) => r.duration)
+                .reduce((a, b) => a + b, 0),
         }));
 
     users = campaign.maps
