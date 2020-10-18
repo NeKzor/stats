@@ -2,9 +2,12 @@ name: CD
 
 on:
   push:
+    branches:
+    - master
     paths:
     - 'public/**'
     - 'src/**/*.js'
+    - 'deploy'
 
 jobs:
   gh-pages:
