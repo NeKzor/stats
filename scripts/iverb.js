@@ -151,20 +151,25 @@ const main = async (outputDir) => {
         maps: game.campaigns.map((campaign) => campaign.maps).reduce((acc, val) => acc.concat(...val), []),
     };
 
-    const discord = new DiscordIntegration(process.env.DISCORD_WEBHOOK_ID, process.env.DISCORD_WEBHOOK_TOKEN);
+    if (recap) {
+        const discord = new DiscordIntegration(process.env.DISCORD_WEBHOOK_ID, process.env.DISCORD_WEBHOOK_TOKEN);
 
-    try {
-        const snapshotRange = [moment().add(-7, 'days'), moment()];
+        try {
+            const snapshotRange = [moment().add(-7, 'days'), moment()];
 
-        discord
-            .sendWebhook({
-                ...recap(overall, snapshotRange),
-                ...(await recapCommunity(cache, snapshotRange)),
-            })
-            .then(() => discord.destroy());
-    } catch (error) {
-        discord.destroy();
-        console.error(error);
+            discord
+                .sendWebhook({
+                    ...recap(overall, snapshotRange),
+                    ...(await recapCommunity(cache, snapshotRange)),
+                })
+                .then(() => {
+                    console.log('weekly recap sent');
+                    discord.destroy();
+                });
+        } catch (error) {
+            discord.destroy();
+            console.error(error);
+        }
     }
 
     tryMakeDir(`${outputDir}/stats`);

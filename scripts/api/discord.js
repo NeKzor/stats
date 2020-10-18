@@ -40,7 +40,7 @@ class DiscordIntegration {
         mostActiveMaps,
     }) {
         return {
-            title: `Recap Week #${moment().isoWeek()}`,
+            title: `Recap - Week #${moment().isoWeek()}`,
             url: 'https://board.iverb.me',
             color: 295077,
             fields: [
