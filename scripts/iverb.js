@@ -5,10 +5,18 @@ const Portal2Boards = require('./api/client');
 const { Portal2Map, Portal2MapType } = require('./api/portal2');
 const recapCommunity = require('./community');
 const DiscordIntegration = require('./api/discord');
+const TwitterIntegration = require('./api/twitter');
 
 require('dotenv').config();
 
 const cacheFile = path.join(__dirname, '../cache.json');
+
+const twitter = new TwitterIntegration(
+    process.env.TWITTER_API_KEY,
+    process.env.TWITTER_API_SECRET_KEY,
+    process.env.TWITTER_ACCESS_TOKEN,
+    process.env.TWITTER_ACCESS_TOKEN_SECRET,
+);
 
 const findPartners = (entry, index, items) => {
     const prevEntry = items[index + 1];
@@ -84,6 +92,7 @@ const fetchNewEntries = async (latestId) => {
 const main = async (outputDir, weeklyRecap) => {
     const cache = importJson(cacheFile);
 
+    const newWrs = [];
     try {
         const latestId = cache.changelog[0].id;
         const newEntries = await fetchNewEntries(latestId);
@@ -91,16 +100,42 @@ const main = async (outputDir, weeklyRecap) => {
         cache.changelog.unshift(...newEntries);
         tryExportJson(cacheFile, cache, true, false);
 
-        console.log(`updated changelog with ${newEntries.length} new entries`);
+        newWrs.push(
+            ...newEntries.filter((entry) => entry.wr_gain === '1' && entry.banned === '0').map((entry) => entry.id),
+        );
+
+        log.info(`updated changelog with ${newEntries.length} new entries (wrs: ${newWrs.length})`);
     } catch (error) {
-        console.error(error);
+        log.error(error);
     }
 
     const { changelog } = cache;
 
+    // Not that accurate, we really need iso standard for dates to make things easier :>
+    const monday = moment().weekday(1).hour(0).minute(0).second(0);
+    const sunday = moment().weekday(7).hour(23).minute(59).second(59);
+    let wrsThisWeek = 0;
+    let pbsThisWeek = 0;
+
     const records = changelog.filter((entry) => {
-        return entry.wr_gain === '1' && entry.banned === '0';
+        if (entry.banned === '1') {
+            return false;
+        }
+
+        const isWr = entry.wr_gain === '1';
+
+        if (moment(entry.time_gained).isBetween(monday, sunday)) {
+            if (isWr) {
+                ++wrsThisWeek;
+            }
+
+            ++pbsThisWeek;
+        }
+
+        return isWr;
     });
+
+    twitter.updateBio({ wrsThisWeek, pbsThisWeek });
 
     const avatarCache = new Map();
 
@@ -133,6 +168,17 @@ const main = async (outputDir, weeklyRecap) => {
                         date: wr.date,
                         avatar: wr.user.avatar,
                     });
+                }
+
+                if (newWrs.find((id) => wr.id === id)) {
+                    if (map.type === Portal2MapType.Cooperative) {
+                        if (wr.isPartner) {
+                            const partnerWr = campaignMap.history.find(({ id }) => id === wr.partnerId);
+                            twitter.sendTweet([wr, partnerWr], map);
+                        }
+                    } else {
+                        twitter.sendTweet([wr], map);
+                    }
                 }
             });
 
@@ -185,12 +231,12 @@ const main = async (outputDir, weeklyRecap) => {
                     ...(await recapCommunity(cache, snapshotRange)),
                 })
                 .then(() => {
-                    console.log('weekly recap sent');
+                    log.info('weekly recap sent');
                     discord.destroy();
                 });
         } catch (error) {
             discord.destroy();
-            console.error(error);
+            log.error(error);
         }
     }
 
@@ -418,5 +464,9 @@ const inspect = (obj) => console.dir(obj, { depth: 6 });
 if (process.argv[2] === '--test') {
     main(path.join(__dirname, '../api/')).catch(inspect);
 }
+
+process.on('SIGINT', () => {
+    twitter.updateBio({ status: '#OFFLINE' }).finally(() => process.exit());
+});
 
 module.exports = main;
