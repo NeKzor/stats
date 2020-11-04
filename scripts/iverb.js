@@ -26,10 +26,18 @@ const findPartners = (entry, index, items) => {
             entry.isPartner = true;
             entry.delta = prevEntry.delta;
             entry.partnerId = prevEntry.id;
-            entry.beatenBy = { id: beatenBy ? beatenBy.partnerId : null };
+            entry.beatenBy = [];
+
+            if (beatenBy) {
+                entry.beatenBy.push({ id: beatenBy.id });
+                if (beatenBy.partnerId) {
+                    entry.beatenBy.push({ id: beatenBy.partnerId });
+                }
+            }
+
             entry.duration = moment(beatenBy ? beatenBy.date : undefined).diff(moment(entry.date), 'd');
             prevEntry.partnerId = entry.id;
-            prevEntry.beatenBy = { id: beatenBy ? beatenBy.id : null };
+            prevEntry.beatenBy = entry.beatenBy.map((beatenBy) => ({ ...beatenBy })).reverse();
             prevEntry.duration = entry.duration;
             prevEntry.isPartner = false;
         } else if (
@@ -45,27 +53,35 @@ const findPartners = (entry, index, items) => {
     }
 };
 
-const asHistory = (entry, prevEntry, nextEntry) => ({
-    user: {
-        id: entry.profile_number,
-        name: entry.player_name,
-        avatar: entry.avatar,
-    },
-    id: entry.id,
-    date: entry.time_gained,
-    score: parseInt(entry.score, 10),
-    duration: moment(nextEntry ? nextEntry.time_gained : undefined).diff(moment(entry.time_gained), 'd'),
-    beatenBy: { id: nextEntry ? nextEntry.id : null },
-    delta: prevEntry ? Math.abs(prevEntry.score - parseInt(entry.score, 10)) : null,
-    demo: entry.hasDemo === '1',
-    media: entry.youtubeID,
-});
+const asWr = (entry, index, items) => {
+    const prevEntry = items[index + 1];
 
-const asWr = (entry, prevEntry) => asHistory(entry, prevEntry);
+    const beatenBy = [...items].reverse().find((item) => parseInt(item.score, 10) < parseInt(entry.score, 10));
+
+    return {
+        user: {
+            id: entry.profile_number,
+            name: entry.player_name,
+            avatar: entry.avatar,
+        },
+        id: entry.id,
+        date: entry.time_gained,
+        score: parseInt(entry.score, 10),
+        duration: moment(beatenBy ? beatenBy.time_gained : undefined).diff(moment(entry.time_gained), 'd'),
+        beatenBy: beatenBy ? [{ id: beatenBy.id }] : [],
+        delta: prevEntry ? Math.abs(prevEntry.score - parseInt(entry.score, 10)) : null,
+        demo: entry.hasDemo === '1',
+        media: entry.youtubeID,
+    };
+};
+
+const fetchArg = process.argv.indexOf('--fetch');
+const fetchValue = fetchArg !== -1 ? process.argv[fetchArg + 1] : null;
+const maxDaysAgo = fetchValue ? Math.max(1, Math.min(60, parseInt(fetchValue, 10))) : 1;
 
 const fetchNewEntries = async (latestId) => {
     const changelog = await Portal2Boards.changelog({
-        maxDaysAgo: 1,
+        maxDaysAgo,
     });
 
     let index = 0;
@@ -110,15 +126,15 @@ const main = async (outputDir, weeklyRecap) => {
         for (const map of maps) {
             if (!map.exists) continue;
 
-            const history = records.filter((entry) => entry.mapid == map.bestTimeId);
+            const history = records.filter((entry) => entry.mapid == map.bestTimeId).map(asWr);
 
-            const wr = history[0].score;
-            const wrs = history.filter((entry) => entry.score === wr);
+            const wrScore = history[0].score;
+            const wrs = history.filter((wr) => wr.score === wrScore).reverse();
 
             const campaignMap = {
                 map,
-                wrs: wrs.map((item, index, items) => asWr(item, items[index + 1])),
-                history: history.map((item, index, items) => asHistory(item, items[index + 1], items[index - 1])),
+                wrs,
+                history,
             };
 
             if (map.type === Portal2MapType.Cooperative) {
@@ -217,18 +233,30 @@ const generateStats = (overall) => {
         .reduce((acc, val) => acc.concat(val), []);
 
     mapWrs.forEach((wr) => {
-        if (wr.beatenBy.id) {
-            const newWr = mapWrs.find(({ id }) => id === wr.beatenBy.id);
-            wr.beatenBy.date = newWr.date;
-            wr.beatenBy.user = { ...newWr.user };
+        if (wr.beatenBy.length > 0) {
+            const ids = wr.beatenBy.map(({ id }) => id);
+            const newWrs = mapWrs.filter((wr) => ids.some((id) => wr.id === id));
+
+            wr.beatenBy.forEach((beatenBy) => {
+                const newWr = newWrs.find(({ id }) => id === beatenBy.id);
+                beatenBy.date = newWr.date;
+                beatenBy.user = { ...newWr.user };
+            });
         }
     });
 
     const getNextDuration = (wr) => {
-        if (wr.beatenBy.id && wr.id !== wr.beatenBy.id && wr.beatenBy.user.id === wr.user.id) {
-            const newWr = mapWrs.find(({ id }) => id === wr.beatenBy.id);
+        if (
+            wr.beatenBy.length > 0 &&
+            !wr.beatenBy.some(({ id }) => id === wr.id) &&
+            wr.beatenBy.some(({ user }) => user.id === wr.user.id)
+        ) {
+            const ids = wr.beatenBy.map(({ id }) => id);
+            const newWrs = mapWrs.filter((wr) => ids.some((id) => wr.id === id));
+            const newWr = newWrs.find(({ user }) => user.id === wr.user.id);
+
             if (newWr) {
-                newWr.excludeReign = true;
+                newWrs.forEach((newWr) => newWr.excludeReign = true);
                 const [nextDuration, lastWr] = getNextDuration(newWr);
                 return [wr.duration + nextDuration, lastWr];
             }

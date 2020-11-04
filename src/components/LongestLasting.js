@@ -142,17 +142,17 @@ const RecordsTable = ({ data, useLiveDuration }) => {
                                     </Tooltip>
                                 </MinTableCell>
                                 <MinTableCell align="left">
-                                    {row.beatenBy.id ? (
+                                    {row.beatenBy.length > 0 ? (
                                         <Tooltip
-                                            title={<Moment fromNow>{row.beatenBy.date}</Moment>}
+                                            title={<Moment fromNow>{row.beatenBy[0].date}</Moment>}
                                             placement="bottom-end"
                                             enterDelay={300}
                                         >
                                             <Moment
-                                                style={{ color: getDateDifferenceColor(row.beatenBy.date), ...noWrap }}
+                                                style={{ color: getDateDifferenceColor(row.beatenBy[0].date), ...noWrap }}
                                                 format="YYYY-MM-DD"
                                             >
-                                                {row.beatenBy.date}
+                                                {row.beatenBy[0].date}
                                             </Moment>
                                         </Tooltip>
                                     ) : (
@@ -160,8 +160,8 @@ const RecordsTable = ({ data, useLiveDuration }) => {
                                     )}
                                 </MinTableCell>
                                 <MinTableCell align="left">
-                                    {row.beatenBy.id ? (
-                                        <PlayerAvatar user={row.beatenBy.user} />
+                                    {row.beatenBy.length > 0 ? (
+                                        <PlayerAvatar user={row.beatenBy[0].user} />
                                     ) : (
                                         <span>unbeaten</span>
                                     )}
