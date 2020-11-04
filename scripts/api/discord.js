@@ -1,18 +1,6 @@
 const Discord = require('discord.js');
 const moment = require('moment');
-
-const formatScore = (score) => {
-    if (score === undefined || score === null) {
-        return score;
-    }
-
-    let csec = score % 100;
-    let tsec = Math.floor(score / 100);
-    let sec = tsec % 60;
-    let min = Math.floor(tsec / 60);
-
-    return (min > 0 ? min + ':' : '') + (sec < 10 && min > 0 ? '0' + sec : sec) + '.' + (csec < 10 ? '0' + csec : csec);
-};
+const { formatScore } = require('../utils');
 
 class DiscordIntegration {
     constructor(id, token) {
