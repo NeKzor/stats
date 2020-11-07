@@ -17,7 +17,7 @@ const rows = [
     { id: 'map.alias', sortable: false, label: 'Map', align: 'left' },
     { id: 'score', sortable: false, label: 'Time', align: 'left' },
     { id: 'user.name', sortable: false, label: 'Player', align: 'left' },
-    { id: 'delta', sortable: false, label: 'Imporvement', align: 'left' },
+    { id: 'delta', sortable: false, label: 'Improvement', align: 'left' },
     { id: 'date', sortable: false, label: 'Date', align: 'left' },
 ];
 
