@@ -52,7 +52,7 @@ const RankingsTableHead = ({ order, orderBy, onRequestSort, showDuration }) => {
     );
 };
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles((_) => ({
     root: {
         overflowX: 'auto',
     },

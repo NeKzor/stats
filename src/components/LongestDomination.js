@@ -58,7 +58,7 @@ const LongestDominationHead = ({ order, orderBy, onRequestSort }) => {
     );
 };
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles((_) => ({
     root: {
         overflowX: 'auto',
     },
@@ -114,7 +114,7 @@ const RecordsTable = ({ data, useLiveDuration }) => {
                                     {row.map.alias}
                                 </Link>
                             </MinTableCell>
-                            <MinTableCell align="left">
+                            <MinTableCell align="left" style={noWrap}>
                                 {formatScore(row.score)} → {formatScore(row.lastScore)}
                             </MinTableCell>
                             <MinTableCell align="left">

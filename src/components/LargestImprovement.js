@@ -55,7 +55,7 @@ const LargestImprovementHead = ({ order, orderBy, onRequestSort }) => {
     );
 };
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles((_) => ({
     root: {
         overflowX: 'auto',
     },
