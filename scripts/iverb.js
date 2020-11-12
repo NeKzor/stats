@@ -63,6 +63,11 @@ const findPartners = (entry, index, items) => {
 
 const asWr = (entry, index, items) => {
     const prevEntry = items[index + 1];
+    const delta = prevEntry ? (parseInt(prevEntry.score, 10) - parseInt(entry.score, 10)) : null;
+
+    if (delta !== null && delta < 0) {
+        return null;
+    }
 
     const beatenBy = [...items].reverse().find((item) => parseInt(item.score, 10) < parseInt(entry.score, 10));
 
@@ -77,7 +82,7 @@ const asWr = (entry, index, items) => {
         score: parseInt(entry.score, 10),
         duration: moment(beatenBy ? beatenBy.time_gained : undefined).diff(moment(entry.time_gained), 'd'),
         beatenBy: beatenBy ? [{ id: beatenBy.id }] : [],
-        delta: prevEntry ? Math.abs(prevEntry.score - parseInt(entry.score, 10)) : null,
+        delta,
         demo: entry.hasDemo === '1',
         media: entry.youtubeID,
     };
@@ -161,7 +166,7 @@ const main = async (outputDir, weeklyRecap) => {
         for (const map of maps) {
             if (!map.exists) continue;
 
-            const history = records.filter((entry) => entry.mapid == map.bestTimeId).map(asWr);
+            const history = records.filter((entry) => entry.mapid == map.bestTimeId).map(asWr).filter((wr) => wr);
 
             const wrScore = history[0].score;
             const wrs = history.filter((wr) => wr.score === wrScore).reverse();
