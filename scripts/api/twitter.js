@@ -3,10 +3,16 @@ const { formatScore, log } = require('../utils');
 
 require('dotenv').config();
 
-const locations = ['Relaxation Vault', 'Aperture Facility'];
+const locations = [
+    'Relaxation Vault',
+    'Aperture Facility',
+    'Central AI Chamber',
+    "Wheatley's Lair",
+    'Enrichment Center',
+];
 
 const rng = (max) => Math.floor(Math.random() * Math.floor(max));
-const youTubeLink = (media) => media ? `https://youtube.com/watch?v=${media}` : '';
+const youTubeLink = (media) => (media ? `https://youtube.com/watch?v=${media}` : '');
 
 const defaultBioOptions = { status: '#ONLINE', wrsThisWeek: 0, pbsThisWeek: 0 };
 
@@ -55,7 +61,7 @@ PBs set this week: ${pbsThisWeek}`.trim();
             .then(() => log.info('[twitter] account profile updated'))
             .catch(log.error);
     }
-    // TODO: Use Twitter name instead of user name once iverb supports it 
+    // TODO: Use Twitter name instead of user name once iverb supports it
     sendTweet(wrs, map) {
         if (!this.enabled) {
             return Promise.resolve();
@@ -71,7 +77,8 @@ ${youTubeLink(wrs[1] && wrs[1].media ? wrs[1].media : media)}`.trim();
 
         log.info(status);
 
-        return this.client.post('statuses/update', { status })
+        return this.client
+            .post('statuses/update', { status })
             .then(() => log.info('[twitter] status updated'))
             .catch(log.error);
     }
