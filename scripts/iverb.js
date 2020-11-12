@@ -65,7 +65,7 @@ const findPartners = (entry, index, items) => {
 
 const asWr = (entry, index, items) => {
     const prevEntry = items[index + 1];
-    const delta = prevEntry ? (parseInt(prevEntry.score, 10) - parseInt(entry.score, 10)) : null;
+    const delta = prevEntry ? parseInt(prevEntry.score, 10) - parseInt(entry.score, 10) : null;
 
     if (delta !== null && delta < 0) {
         return null;
@@ -94,7 +94,7 @@ const fetchArg = process.argv.indexOf('--fetch');
 const fetchValue = fetchArg !== -1 ? process.argv[fetchArg + 1] : null;
 const maxDaysAgo = fetchValue ? Math.max(1, Math.min(60, parseInt(fetchValue, 10))) : 1;
 
-const fetchNewEntries = async (latestId) => {
+const fetchNewEntries = async (latestEntry) => {
     const changelog = await Portal2Boards.changelog({
         maxDaysAgo,
     });
@@ -102,14 +102,16 @@ const fetchNewEntries = async (latestId) => {
     let index = 0;
 
     for (const { id } of changelog) {
-        if (id === latestId) {
+        if (id === latestEntry.id) {
             return changelog.slice(0, index);
         }
 
         ++index;
     }
 
-    throw new Error('Failed to find last changelog entry.');
+    throw new Error(
+        'Failed to find last changelog entry. Try --fetch ' + moment().diff(moment(latestEntry.time_gained), 'days'),
+    );
 };
 
 const main = async (outputDir, weeklyRecap) => {
@@ -117,8 +119,8 @@ const main = async (outputDir, weeklyRecap) => {
 
     const newWrs = [];
     try {
-        const latestId = cache.changelog[0].id;
-        const newEntries = await fetchNewEntries(latestId);
+        const latestEntry = cache.changelog[0];
+        const newEntries = await fetchNewEntries(latestEntry);
 
         cache.changelog.unshift(...newEntries);
         tryExportJson(cacheFile, cache, true, false);
@@ -168,7 +170,10 @@ const main = async (outputDir, weeklyRecap) => {
         for (const map of maps) {
             if (!map.exists) continue;
 
-            const history = records.filter((entry) => entry.mapid == map.bestTimeId).map(asWr).filter((wr) => wr);
+            const history = records
+                .filter((entry) => entry.mapid == map.bestTimeId)
+                .map(asWr)
+                .filter((wr) => wr);
 
             const wrScore = history[0].score;
             const wrs = history.filter((wr) => wr.score === wrScore).reverse();
@@ -283,7 +288,7 @@ const generateStats = (overall) => {
                 return wr;
             });
         })
-        .reduce((acc, val) => acc.concat(val), []);
+        .flat();
 
     mapWrs.forEach((wr) => {
         if (wr.beatenBy.length > 0) {
@@ -309,7 +314,7 @@ const generateStats = (overall) => {
             const newWr = newWrs.find(({ user }) => user.id === wr.user.id);
 
             if (newWr) {
-                newWrs.forEach((newWr) => newWr.excludeReign = true);
+                newWrs.forEach((newWr) => (newWr.excludeReign = true));
                 const [nextDuration, lastWr] = getNextDuration(newWr);
                 return [wr.duration + nextDuration, lastWr];
             }
@@ -369,8 +374,8 @@ const generateStats = (overall) => {
 const generateRankings = (campaign, statsPage) => {
     const totalTime = campaign.maps.map((t) => t.wrs[0].score).reduce((a, b) => a + b, 0);
 
-    let users = campaign.maps.map((t) => t.wrs.map((r) => r.user)).reduce((acc, val) => acc.concat(val), []);
-    let wrs = campaign.maps.map((t) => t.wrs).reduce((acc, val) => acc.concat(val), []);
+    let users = campaign.maps.map((t) => t.wrs.map((r) => r.user)).flat();
+    let wrs = campaign.maps.map((t) => t.wrs).flat();
 
     let frequency = users.reduce((count, user) => {
         count[user.id] = (count[user.id] || 0) + 1;
@@ -397,8 +402,8 @@ const generateRankings = (campaign, statsPage) => {
         return campaign;
     }
 
-    users = campaign.maps.map((t) => t.history.map((r) => r.user)).reduce((acc, val) => acc.concat(val), []);
-    wrs = campaign.maps.map((t) => t.history).reduce((acc, val) => acc.concat(val), []);
+    users = campaign.maps.map((t) => t.history.map((r) => r.user)).flat();
+    wrs = campaign.maps.map((t) => t.history).flat();
     frequency = users.reduce((count, user) => {
         count[user.id] = (count[user.id] || 0) + 1;
         return count;
@@ -421,7 +426,7 @@ const generateRankings = (campaign, statsPage) => {
             const ids = [...new Set(t.history.map((r) => r.user.id))];
             return ids.map((id) => all.find((user) => user.id === id));
         })
-        .reduce((acc, val) => acc.concat(val), []);
+        .flat();
     frequency = users.reduce((count, user) => {
         count[user.id] = (count[user.id] || 0) + 1;
         return count;
@@ -448,7 +453,7 @@ const recap = (campaign, snapshotRange) => {
 
     const wrs = campaign.maps
         .map((t) => t.history)
-        .reduce((acc, val) => acc.concat(val), [])
+        .flat()
         .filter(({ date }) => moment(date).isBetween(snapshotStart, snapshotEnd));
 
     const mapWrs = campaign.maps
@@ -460,7 +465,7 @@ const recap = (campaign, snapshotRange) => {
                     return wr;
                 });
         })
-        .reduce((acc, val) => acc.concat(val), []);
+        .flat();
 
     mapWrs.forEach((wr) => {
         if (wr.beatenBy.id) {
