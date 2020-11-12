@@ -22,8 +22,13 @@ class TwitterIntegration {
         });
 
         this.lastBioOptions = defaultBioOptions;
+        this.enabled = true;
     }
     updateBio(options) {
+        if (!this.enabled) {
+            return Promise.resolve();
+        }
+
         const { status, wrsThisWeek, pbsThisWeek } = {
             ...this.lastBioOptions,
             ...options,
@@ -52,6 +57,10 @@ PBs set this week: ${pbsThisWeek}`.trim();
     }
     // TODO: Use Twitter name instead of user name once iverb supports it 
     sendTweet(wrs, map) {
+        if (!this.enabled) {
+            return Promise.resolve();
+        }
+
         const { score, delta, media } = wrs[0];
 
         const status = `

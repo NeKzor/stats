@@ -18,6 +18,8 @@ const twitter = new TwitterIntegration(
     process.env.TWITTER_ACCESS_TOKEN_SECRET,
 );
 
+twitter.enabled = process.argv.some((arg) => arg === '--twitter');
+
 const findPartners = (entry, index, items) => {
     const prevEntry = items[index + 1];
     const nextEntry = items[index - 1];
@@ -494,7 +496,7 @@ const recap = (campaign, snapshotRange) => {
 
 const inspect = (obj) => console.dir(obj, { depth: 6 });
 
-if (process.argv[2] === '--test') {
+if (process.argv.some((arg) => arg === '--test')) {
     main(path.join(__dirname, '../api/')).catch(inspect);
 }
 
