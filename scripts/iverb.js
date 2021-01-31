@@ -92,35 +92,62 @@ const asWr = (entry, index, items) => {
 
 const fetchArg = process.argv.indexOf('--fetch');
 const fetchValue = fetchArg !== -1 ? process.argv[fetchArg + 1] : null;
-const maxDaysAgo = fetchValue ? Math.max(1, Math.min(60, parseInt(fetchValue, 10))) : 1;
+const maxDaysAgo = fetchValue ? Math.max(1, Math.min(120, parseInt(fetchValue, 10))) : 1;
 
-const fetchNewEntries = async (latestEntry) => {
-    const changelog = await Portal2Boards.changelog({
-        maxDaysAgo,
-    });
-
+const findNewEntries = (changelog, latestEntry) => {
     let index = 0;
 
     for (const { id } of changelog) {
         if (id === latestEntry.id) {
-            return changelog.slice(0, index);
+            return [changelog.slice(0, index), changelog.slice(index)];
         }
 
         ++index;
     }
 
-    throw new Error(
-        'Failed to find last changelog entry. Try --fetch ' + moment().diff(moment(latestEntry.time_gained), 'days'),
-    );
+    log.warn('failed to find latest changelog entry');
+    return false;
 };
 
 const main = async (outputDir, weeklyRecap) => {
     const cache = importJson(cacheFile);
 
     const newWrs = [];
+    let retryCount = 0;
     try {
-        const latestEntry = cache.changelog[0];
-        const newEntries = await fetchNewEntries(latestEntry);
+        const changelog = await Portal2Boards.changelog({
+            maxDaysAgo,
+        });
+
+        let changelogResult = false;
+
+        while ((changelogResult = findNewEntries(changelog, cache.changelog[retryCount])) === false) {
+            if (++retryCount === 10) {
+                throw new Error(
+                    'Failed to find last changelog entry. Try --fetch ' +
+                        moment().diff(moment(cache.changelog[retryCount].time_gained), 'days'),
+                );
+            }
+        }
+
+        const [newEntries, oldEntries] = changelogResult;
+
+        // Remove entries in cache that could not be found in the latest changelog
+        // Could be a profile ban or a removed submission
+        // Also update banned status which can change between fetch cycles
+        const cachedEntriesToCheck = cache.changelog.slice(retryCount, retryCount + oldEntries.length);
+        for (const cached of cachedEntriesToCheck) {
+            const found = oldEntries.find((entry) => entry.id === cached.id);
+            if (found) {
+                if (cached.banned !== found.banned) {
+                    cached.banned = found.banned;
+                    console.warn('ban status changed', found);
+                }
+            } else {
+                console.warn('removing' , cached);
+                cache.changelog.splice(cache.changelog.indexOf(cached), 1);
+            }
+        }
 
         cache.changelog.unshift(...newEntries);
         tryExportJson(cacheFile, cache, true, false);
