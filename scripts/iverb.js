@@ -135,7 +135,7 @@ const main = async (outputDir, weeklyRecap) => {
         // Remove entries in cache that could not be found in the latest changelog
         // Could be a profile ban or a removed submission
         // Also update banned status which can change between fetch cycles
-        const cachedEntriesToCheck = cache.changelog.slice(retryCount, retryCount + oldEntries.length);
+        const cachedEntriesToCheck = cache.changelog.slice(0, oldEntries.length);
         for (const cached of cachedEntriesToCheck) {
             const found = oldEntries.find((entry) => entry.id === cached.id);
             if (found) {
