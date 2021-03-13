@@ -518,7 +518,7 @@ const runRecap = (campaign, snapshotRange) => {
 
     const largestImprovement = mapWrs
         .sort((a, b) => (a.delta === b.delta ? 0 : a.delta < b.delta ? 1 : -1))
-        .slice(0, 3);
+        .slice(0, 5);
 
     const users = wrs.map((t) => t.user);
 

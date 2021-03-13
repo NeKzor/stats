@@ -57,7 +57,7 @@ const recap = (campaign, snapshotRange) => {
             count: entries.filter(({ date }) => moment(date).isBetween(snapshotStart, snapshotEnd)).length,
         }))
         .sort((a, b) => b.count - a.count)
-        .slice(0, 3);
+        .slice(0, 5);
 
     const createLeaderboard = (users) => {
         const frequency = users.reduce((count, user) => {
@@ -71,7 +71,7 @@ const recap = (campaign, snapshotRange) => {
                 user: users.find((u) => u.id === key),
                 prs: frequency[key],
             }))
-            .slice(0, 3);
+            .slice(0, 5);
     };
 
     return {
