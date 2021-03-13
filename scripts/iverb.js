@@ -143,6 +143,10 @@ const main = async (outputDir, weeklyRecap, recapDay) => {
                     cached.banned = found.banned;
                     console.warn('ban status changed', found);
                 }
+                if (cached.media !== found.media) {
+                    cached.media = found.media;
+                    console.warn('media changed changed', found);
+                }
             } else {
                 console.warn('removing' , cached);
                 cache.changelog.splice(cache.changelog.indexOf(cached), 1);
