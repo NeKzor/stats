@@ -2,25 +2,33 @@ const ghPages = require('gh-pages');
 const cron = require('node-cron');
 const iverb = require('./iverb');
 const { log } = require('./utils');
+const moment = require('moment');
 
 const output = require('path').join(__dirname, '/../api');
 const now = process.argv.some((arg) => arg === '-n' || arg === '--now');
+const recapNow = process.argv.some((arg) => arg === '--send-recap');
+const recapDay = 1; // Monday
+
+let lastDay = moment().day();
+let initialRecap = recapNow;
 
 const main = async () => {
-    try {
-        log.info('scraping iverb');
-        await iverb(output);
-    } catch (err) {
-        log.error(err);
+    let isRecap = false;
+
+    const today = moment().day();
+    if (today !== lastDay) {
+        lastDay = today;
+        isRecap = today === recapDay;
     }
 
-    publish();
-};
+    if (initialRecap) {
+        initialRecap = false;
+        isRecap = true;
+    }
 
-const recap = async () => {
     try {
-        log.info('scraping iverb (w/recap)')
-        await iverb(output, true);
+        log.info('scraping iverb (recap: ' + isRecap + ')');
+        await iverb(output, isRecap, recapDay);
     } catch (err) {
         log.error(err);
     }
@@ -50,4 +58,3 @@ if (now) {
 }
 
 cron.schedule('0 * * * *', main);
-cron.schedule('0 0 * * MON', recap);

@@ -26,10 +26,11 @@ class DiscordIntegration {
         mostDemoUploads,
         mostYouTubeLinks,
         mostActiveMaps,
+        week
     }) {
         return {
-            title: `Recap - Week #${moment().isoWeek()}`,
-            url: 'https://board.iverb.me',
+            title: `Recap - Week #${week}`,
+            url: 'https://nekz.me/iverb-stats',
             color: 295077,
             fields: [
                 {

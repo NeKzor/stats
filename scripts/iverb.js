@@ -109,7 +109,7 @@ const findNewEntries = (changelog, latestEntry) => {
     return false;
 };
 
-const main = async (outputDir, weeklyRecap) => {
+const main = async (outputDir, weeklyRecap, recapDay) => {
     const cache = importJson(cacheFile);
 
     const newWrs = [];
@@ -278,12 +278,21 @@ const main = async (outputDir, weeklyRecap) => {
         const discord = new DiscordIntegration(process.env.DISCORD_WEBHOOK_ID, process.env.DISCORD_WEBHOOK_TOKEN);
 
         try {
-            const snapshotRange = [moment().add(-7, 'days'), moment()];
+            const recap = moment().set({ hour: 0, minute: 0, seconds: 0, milliseconds: 0 });
+
+            if (recap.day() !== recapDay) {
+                const adjustment = recap.day() - recapDay;
+                log.warn('adjusting recap day: -' + adjustment);
+                recap.add(-adjustment, 'days');
+            }
+
+            const snapshotRange = [recap.clone().add(-7, 'days'), recap];
 
             discord
                 .sendWebhook({
-                    ...recap(overall, snapshotRange),
+                    ...runRecap(overall, snapshotRange),
                     ...(await recapCommunity(cache, snapshotRange)),
+                    week: recap.isoWeek() - 1,
                 })
                 .then(() => {
                     log.info('weekly recap sent');
@@ -475,8 +484,9 @@ const generateRankings = (campaign, statsPage) => {
     return campaign;
 };
 
-const recap = (campaign, snapshotRange) => {
+const runRecap = (campaign, snapshotRange) => {
     const [snapshotStart, snapshotEnd] = snapshotRange;
+    log.info(`recap: ${snapshotStart.format()}-${snapshotEnd.format()}`);
 
     const wrs = campaign.maps
         .map((t) => t.history)
