@@ -285,7 +285,9 @@ const main = async (outputDir, weeklyRecap, recapDay) => {
             const recap = moment().set({ hour: 0, minute: 0, seconds: 0, milliseconds: 0 });
 
             if (recap.day() !== recapDay) {
-                const adjustment = recap.day() - recapDay;
+                const adjustment = recap.day() > recapDay 
+                    ? recap.day() - recapDay
+                    : 7 - recapDay;
                 log.warn('adjusting recap day: -' + adjustment);
                 recap.add(-adjustment, 'days');
             }
