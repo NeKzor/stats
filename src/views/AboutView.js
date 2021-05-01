@@ -1,7 +1,7 @@
 import React from 'react';
 import moment from 'moment';
-/* import CircularProgress from '@material-ui/core/CircularProgress'; */
 import FormControlLabel from '@material-ui/core/FormControlLabel';
+/* import CircularProgress from '@material-ui/core/CircularProgress'; */
 import FormGroup from '@material-ui/core/FormGroup';
 import Link from '@material-ui/core/Link';
 import Paper from '@material-ui/core/Paper';
