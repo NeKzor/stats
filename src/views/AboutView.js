@@ -1,6 +1,6 @@
 import React from 'react';
-/* import moment from 'moment';
-import CircularProgress from '@material-ui/core/CircularProgress'; */
+import moment from 'moment';
+/* import CircularProgress from '@material-ui/core/CircularProgress'; */
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormGroup from '@material-ui/core/FormGroup';
 import Link from '@material-ui/core/Link';
@@ -10,8 +10,8 @@ import Switch from '@material-ui/core/Switch';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
-import TableRow from '@material-ui/core/TableRow';
-import Tooltip from '@material-ui/core/Tooltip'; */
+import TableRow from '@material-ui/core/TableRow';*/
+import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
 import ViewContent from './ViewContent';
@@ -34,24 +34,20 @@ const noWrap = { whiteSpace: 'nowrap' };
 const MinTableCell = (props) => <TableCell size="small" {...props} />; */
 const Padding = () => <div style={{ paddingTop: '50px' }} />;
 
-/* const getUpdate = () => {
+const getUpdate = () => {
+    // Not sure if this is right lol
     const now = moment.utc();
-    let updateIn = moment().utc().endOf('day');
-
-    if (updateIn.isBefore(now)) {
-        updateIn = moment().utc().endOf('day').add(1, 'day');
-    }
+    let updateIn = now.clone().add(1, 'hour').startOf('hour');
 
     const duration = moment.duration({ from: now, to: updateIn });
-    const hours = duration.get('hours');
     const minutes = duration.get('minutes');
     const seconds = duration.get('seconds');
 
     const g = (value) => (value === 1 ? '' : 's');
-    return `${hours} hour${g(hours)}, ${minutes} minute${g(minutes)}, ${seconds} second${g(seconds)}`;
+    return `${minutes} minute${g(minutes)}, ${seconds} second${g(seconds)}`;
 };
 
-let clockTimer = null; */
+let clockTimer = null;
 
 const AboutView = () => {
     /* const isMounted = useIsMounted(); */
@@ -62,6 +58,8 @@ const AboutView = () => {
     } = React.useContext(AppState);
 
     /* const [gitHub, setGitHub] = React.useState([]);
+    const [nextUpdate, setNextUpdate] = React.useState(getUpdate());*/
+
     const [nextUpdate, setNextUpdate] = React.useState(getUpdate());
 
     React.useEffect(() => {
@@ -70,7 +68,7 @@ const AboutView = () => {
         }, 1000);
 
         return () => clearInterval(clockTimer);
-    }, []); */
+    }, []);
 
     const toggleDarkMode = () => {
         dispatch({ action: 'toggleDarkMode' });
@@ -113,15 +111,20 @@ const AboutView = () => {
                     Portal 2 World Records & Statistics
                 </Typography>
                 <br />
-                <Typography variant="body1">aka iverb 1½</Typography>
-
-                {/* <Padding />
-
+                <Typography variant="body1">
+                    This is <Link rel="noopener" href="https://board.iverb.me">
+                        iverb
+                    </Link> 1½ or something idk. Mainly inspired by{' '}
+                    <Link rel="noopener" href="https://mkwrs.com">
+                        mkwrs.com
+                    </Link>. Updates are hourly.
+                </Typography>
+                <Padding />
                 <Typography variant="h5">Next Update</Typography>
                 <br />
-                {nextUpdate} */}
-
-                {/* <Padding />
+                {nextUpdate}
+                {/*
+                <Padding />
 
                 <Typography variant="h5">Changelog</Typography>
                 <br />
@@ -195,9 +198,7 @@ const AboutView = () => {
                         </Table>
                     </div>
                 )} */}
-
                 <Padding />
-
                 <Typography variant="h5">Theme Settings</Typography>
                 <br />
                 <FormGroup row>
@@ -206,18 +207,12 @@ const AboutView = () => {
                         label="Dark Mode"
                     />
                 </FormGroup>
-
                 <Padding />
-
-                <Typography variant="h5">Credits</Typography>
-                <br />
-                <Link rel="noopener" href="https://board.iverb.me">
-                    board.iverb.me
-                </Link>
-                <br />
-                <Link rel="noopener" href="https://github.com/NeKzor/sdp.js">
-                    sdp.js
-                </Link>
+                <Tooltip title="Source Code">
+                    <Link rel="noopener" href="https://github.com/NeKzor/iverb-stats">
+                        github.com/NeKzor/iverb-stats
+                    </Link>
+                </Tooltip>
             </Paper>
         </ViewContent>
     );
