@@ -59,10 +59,6 @@ const RaceView = ({ match }) => {
         },
         [setCampaign],
     );
-    const onKeyPress = 
-        (event) => {
-            console.log('ASDF', event);
-        };
 
     React.useEffect(() => {
         setRace({ data: undefined });
