@@ -3,6 +3,7 @@ api/
 .env
 .login
 cache.json
+.vscode/
 
 node_modules/
 coverage/
