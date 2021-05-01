@@ -178,6 +178,7 @@ const RecordsView = ({ match }) => {
                                             data={game[tab].maps}
                                             stats={game[tab].stats}
                                             useLiveDuration={live}
+                                            storageKey={'records-view'}
                                         />
                                     </Grid>
                                     <Grid item xs={12} className={classes.padTop}>

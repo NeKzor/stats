@@ -20,6 +20,7 @@ import YouTubeIcon from '@material-ui/icons/YouTube';
 import PlayerAvatar from './PlayerAvatar';
 import { stableSort } from '../utils/stableSort';
 import { formatScore, getDateDifferenceColor } from '../utils/tools';
+import { useLocalStorage }  from '../Hooks';
 
 const rows = [
     { id: 'map.name', sortable: true, label: 'Chamber', align: 'left' },
@@ -317,19 +318,22 @@ const RecordsRow = ({ wr, orderBy, useLiveDuration, history, onClickHistory }) =
     );
 };
 
-const RecordsTable = ({ data, stats, useLiveDuration }) => {
-    const [{ order, rowsPerPage, orderBy, page }, setState] = React.useState(defaultState);
+const RecordsTable = ({ data, stats, useLiveDuration, storageKey }) => {
+    const { rowsPerPage, page } = defaultState;
+
+    const [{ order, orderBy }, setStorage] = useLocalStorage(storageKey, {
+        order: defaultState.order,
+        orderBy: defaultState.orderBy,
+    });
+
     const [history, setHistory] = React.useState(null);
 
-    const handleRequestSort = (_, property) => {
-        const newOrderBy = property;
-
-        setState((state) => ({
-            ...state,
-            order: state.orderBy === newOrderBy ? 'asc' : state.order === 'desc' ? 'asc' : 'desc',
-            orderBy: state.orderBy === newOrderBy && state.order === 'asc' ? 'map.index' : newOrderBy,
-        }));
-    };
+    const handleRequestSort = React.useCallback((_, property) => {
+        setStorage({ 
+            order: orderBy === property ? 'asc' : order === 'desc' ? 'asc' : 'desc',
+            orderBy: orderBy === property && order === 'asc' ? 'map.index' : property,
+        });
+    }, [order, orderBy, setStorage]);
 
     const onClickHistory = React.useCallback(
         (id) => {
