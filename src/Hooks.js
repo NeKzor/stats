@@ -59,7 +59,7 @@ export const useLocalStorage = (key, initialStorage) => {
     const setStorage = React.useCallback((newStorage) => {
         internalSetStorage(newStorage);
         localStorage.setItem(key, JSON.stringify(newStorage));
-    }, [internalSetStorage]);
+    }, [key, internalSetStorage]);
 
     return [storage, setStorage];
 };
