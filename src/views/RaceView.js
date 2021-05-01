@@ -1,15 +1,31 @@
 import React from 'react';
 import { withRouter } from 'react-router';
 import moment from 'moment';
+import Box from '@material-ui/core/Box';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import Paper from '@material-ui/core/Paper';
 import Typography from '@material-ui/core/Typography';
+import InputLabel from '@material-ui/core/InputLabel';
+import MenuItem from '@material-ui/core/MenuItem';
+import FormControl from '@material-ui/core/FormControl';
+import Select from '@material-ui/core/Select';
+import { makeStyles } from '@material-ui/core';
 import FloatingActionButton from '../components/FloatingActionButton';
 import SimpleTitle from '../components/SimpleTitle';
 import BarChart from '../components/RaceChart';
 import Api from '../Api';
 import { useIsMounted } from '../Hooks';
 import ViewContent from './ViewContent';
+
+const useStyles = makeStyles((theme) => ({
+    padTop: {
+        paddingTop: '70px',
+    },
+    formControl: {
+        margin: theme.spacing(1),
+        minWidth: 120,
+    },
+}));
 
 const randomColor = () => `rgb(${255 * Math.random()}, ${255 * Math.random()}, ${255 * Math.random()})`;
 
@@ -24,45 +40,72 @@ const RaceView = ({ match }) => {
     });
 
     const [run, setRun] = React.useState(true);
+    const [type, setType] = React.useState('unique');
+    const [campaign, setCampaign] = React.useState('single-player');
 
     const page = match.params[0];
     const date = match.params.date;
     const useLiveDuration = date === undefined || date === 'latest';
+
+    const onChangeType = React.useCallback(
+        (event) => {
+            setType(event.target.value);
+        },
+        [setType],
+    );
+    const onChangeCampaign = React.useCallback(
+        (event) => {
+            setCampaign(event.target.value);
+        },
+        [setCampaign],
+    );
+    const onKeyPress = 
+        (event) => {
+            console.log('ASDF', event);
+        };
 
     React.useEffect(() => {
         setRace({ data: undefined });
     }, [page]);
 
     React.useEffect(() => {
-        Api.request('race', date)
-            .then(({ data }) => {
+        if (isMounted.current) {
+            setRace({ data: undefined });
+        }
+
+        Api.request('race', `${type}/${campaign}`)
+            .then(({ firstRecordDate, data }) => {
                 if (isMounted.current) {
-                    const players = Object.keys(data);
-                    const len = data[players[0]].length;
+                    const users = data.map(({ user }) => user);
+                    const [firstEntry] = data;
+                    const length = firstEntry ? firstEntry.records.length : 0;
 
                     setRace({
-                        data,
-                        timeline: Array(len)
+                        data: data.reduce((chart, { user, records }) => {
+                            chart[user.id] = records;
+                            return chart;
+                        }, {}),
+                        timeline: Array(length)
                             .fill(0)
-                            .map((_, idx) => moment('2012-03-22').add(idx, 'days').format('YYYY-MM-DD')),
-                        labels: players.reduce((prev, cur) => {
+                            .map((_, idx) => moment(firstRecordDate).add(idx, 'days').format('YYYY-MM-DD')),
+                        labels: users.reduce((labels, user) => {
                             return {
-                                ...prev,
-                                [cur]: (
+                                ...labels,
+                                [user.id]: (
                                     <div style={{ textAlign: 'right', paddingRight: '50px' }}>
-                                        <div>{cur}</div>
+                                        <div>{user.name}</div>
                                     </div>
                                 ),
                             };
                         }, {}),
-                        colors: players.reduce(
-                            (prev, cur) => ({
-                                ...prev,
-                                [cur]: randomColor(),
+                        colors: users.reduce(
+                            (users, user) => ({
+                                ...users,
+                                [user.id]: randomColor(),
                             }),
                             {},
                         ),
-                        len,
+                        len: length,
                     });
                 }
             })
@@ -70,21 +113,40 @@ const RaceView = ({ match }) => {
                 console.error(error);
 
                 if (isMounted.current) {
-                    setRace({ data: null});
+                    setRace({ data: null });
                 }
             });
-    }, [isMounted, page, date, useLiveDuration]);
+    }, [isMounted, page, date, useLiveDuration, type, campaign]);
+
+    const classes = useStyles();
 
     return (
         <ViewContent>
             <Paper>
-                {race.data === undefined ? (
-                    <LinearProgress />
-                ) : race.data === null ? (
-                    <SimpleTitle data="No data." />
-                ) : (
-                    <>
-                        <Typography component="div" role="tabpanel">
+                <Typography component="div" role="tabpanel">
+                    <Box p={3}>
+                        <FormControl className={classes.formControl}>
+                            <InputLabel>Campaign</InputLabel>
+                            <Select value={campaign} onChange={onChangeCampaign}>
+                                <MenuItem value={'single-player'}>Single Player</MenuItem>
+                                <MenuItem value={'cooperative'}>Cooperative</MenuItem>
+                                <MenuItem value={'overall'}>Overall</MenuItem>
+                            </Select>
+                        </FormControl>
+                        <FormControl className={classes.formControl}>
+                            <InputLabel>Stats Type</InputLabel>
+                            <Select value={type} onChange={onChangeType}>
+                                <MenuItem value={'unique'}>World Records</MenuItem>
+                                <MenuItem value={'total'}>Total World Records</MenuItem>
+                            </Select>
+                        </FormControl>
+                    </Box>
+                    {race.data === undefined ? (
+                        <LinearProgress />
+                    ) : race.data === null ? (
+                        <SimpleTitle data="No data." />
+                    ) : (
+                        <>
                             <div
                                 style={{
                                     width: '100%',
@@ -118,9 +180,9 @@ const RaceView = ({ match }) => {
                                     {...race}
                                 />
                             </div>
-                        </Typography>
-                    </>
-                )}
+                        </>
+                    )}
+                </Typography>
             </Paper>
             <FloatingActionButton />
         </ViewContent>

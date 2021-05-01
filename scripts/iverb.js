@@ -114,6 +114,7 @@ const main = async (outputDir, weeklyRecap, recapDay) => {
 
     const newWrs = [];
     let retryCount = 0;
+
     try {
         const changelog = await Portal2Boards.changelog({
             maxDaysAgo,
@@ -148,7 +149,7 @@ const main = async (outputDir, weeklyRecap, recapDay) => {
                     console.warn('media changed changed', found);
                 }
             } else {
-                console.warn('removing' , cached);
+                console.warn('removing', cached);
                 cache.changelog.splice(cache.changelog.indexOf(cached), 1);
             }
         }
@@ -285,9 +286,7 @@ const main = async (outputDir, weeklyRecap, recapDay) => {
             const recap = moment().set({ hour: 0, minute: 0, seconds: 0, milliseconds: 0 });
 
             if (recap.day() !== recapDay) {
-                const adjustment = recap.day() > recapDay 
-                    ? recap.day() - recapDay
-                    : 7 - recapDay;
+                const adjustment = recap.day() > recapDay ? recap.day() - recapDay : 7 - recapDay;
                 log.warn('adjusting recap day: -' + adjustment);
                 recap.add(-adjustment, 'days');
             }
@@ -314,8 +313,25 @@ const main = async (outputDir, weeklyRecap, recapDay) => {
     tryExportJson(`${outputDir}/stats/latest.json`, generateStats(overall), true);
 
     game.campaigns.push(overall);
-
     game.campaigns.forEach((campaign) => generateRankings(campaign, true));
+
+    tryMakeDir(`${outputDir}/race`);
+    tryMakeDir(`${outputDir}/race/unique`);
+    tryMakeDir(`${outputDir}/race/total`);
+
+    game.campaigns.forEach((campaign) => {
+        tryExportJson(
+            `${outputDir}/race/unique/${campaign.name.toLowerCase().replace(/ /g, '-')}.json`,
+            generateRaceChart(campaign, true),
+            true,
+        );
+        tryExportJson(
+            `${outputDir}/race/total/${campaign.name.toLowerCase().replace(/ /g, '-')}.json`,
+            generateRaceChart(campaign, false),
+            true,
+        );
+    });
+
     game.campaigns.forEach((campaign) => delete campaign.maps);
 
     tryMakeDir(`${outputDir}/ranks`);
@@ -488,6 +504,75 @@ const generateRankings = (campaign, statsPage) => {
     };
 
     return campaign;
+};
+
+const generateRaceChart = (campaign, unique) => {
+    const getSnapshotRecords = (history, snapshotDate) => {
+        const wrs = history.filter(({ date }) => snapshotDate.localeCompare(date.slice(0, 10)) >= 0);
+        const [wr] = wrs;
+        return wr ? wrs.filter(({ score }) => score === wr.score) : wrs;
+    };
+
+    const getSnapshot = (snapshotDate) => {
+        const snapshot = {};
+
+        for (const map of campaign.maps) {
+            const history = snapshotDate ? getSnapshotRecords(map.history, snapshotDate) : map.history;
+
+            for (const wr of history) {
+                const user = snapshot[wr.user.id];
+                const date = snapshotDate || wr.date.slice(0, 10);
+
+                if (user) {
+                    user.wrs[date] = (user.wrs[date] || 0) + 1;
+                } else {
+                    snapshot[wr.user.id] = {
+                        user: {
+                            ...wr.user,
+                        },
+                        wrs: {
+                            [date]: 1,
+                        },
+                    };
+                }
+            }
+        }
+
+        return Object.entries(snapshot);
+    };
+
+    const [firstRecordDate] = campaign.maps
+        .map(({ history }) => history[history.length - 1].date)
+        .sort((a, b) => a.localeCompare(b));
+
+    const then = moment(firstRecordDate);
+    const now = moment();
+
+    const result = {};
+
+    const snapshot = getSnapshot(null);
+
+    while (then.diff(now, 'days') < 0) {
+        const date = then.format('YYYY-MM-DD');
+        const currentSnapshot = unique ? getSnapshot(date) : snapshot;
+
+        for (const [userId, { user }] of snapshot) {
+            const [_, userSnapshot] = currentSnapshot.find(([userIdSnapshot]) => userIdSnapshot === userId) || [];
+
+            const data = result[user.id] || { records: [], user };
+
+            data.records.push(
+                ((userSnapshot ? userSnapshot.wrs[date] : null) || 0) +
+                    (unique ? 0 : data.records[data.records.length - 1] || 0),
+            );
+
+            result[user.id] = data;
+        }
+
+        then.add(1, 'day');
+    }
+
+    return { firstRecordDate, data: Object.values(result) };
 };
 
 const runRecap = (campaign, snapshotRange) => {
