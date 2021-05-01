@@ -95,46 +95,45 @@ const RecordsTable = ({ data }) => {
             <Table size="small">
                 <LargestImprovementHead order={order} orderBy={orderBy} onRequestSort={handleRequestSort} />
                 <TableBody>
-                    {stableSortSort(data, order, orderBy, thenBy)
-                        .map((row) => (
-                            <TableRow tabIndex={-1} key={row.id}>
-                                <MinTableCell
-                                    style={noWrap}
-                                    rowSpan={orderBy === 'map.name' || orderBy === 'map.index' ? row.map.records : 1}
-                                    align="left"
+                    {stableSortSort(data, order, orderBy, thenBy).map((row) => (
+                        <TableRow tabIndex={-1} key={row.id}>
+                            <MinTableCell
+                                style={noWrap}
+                                rowSpan={orderBy === 'map.name' || orderBy === 'map.index' ? row.map.records : 1}
+                                align="left"
+                            >
+                                <Link
+                                    color="inherit"
+                                    href={`https://board.iverb.me/chamber/${row.map.bestTimeId}`}
+                                    rel="noreferrer"
+                                    target="_blank"
                                 >
-                                    <Link
-                                        color="inherit"
-                                        href={`https://board.iverb.me/chamber/${row.map.bestTimeId}`}
-                                        rel="noreferrer"
-                                        target="_blank"
+                                    {row.map.alias}
+                                </Link>
+                            </MinTableCell>
+                            <MinTableCell align="left">{formatScore(row.score)}</MinTableCell>
+                            <MinTableCell align="left">
+                                <PlayerAvatar user={row.user} />
+                            </MinTableCell>
+                            <MinTableCell align="left">
+                                <span>-{formatScore(row.delta)}</span>
+                            </MinTableCell>
+                            <MinTableCell align="left">
+                                <Tooltip
+                                    title={<Moment fromNow>{row.date}</Moment>}
+                                    placement="bottom-end"
+                                    enterDelay={300}
+                                >
+                                    <Moment
+                                        style={{ color: getDateDifferenceColor(row.date), ...noWrap }}
+                                        format="YYYY-MM-DD"
                                     >
-                                        {row.map.alias}
-                                    </Link>
-                                </MinTableCell>
-                                <MinTableCell align="left">{formatScore(row.score)}</MinTableCell>
-                                <MinTableCell align="left">
-                                    <PlayerAvatar user={row.user} />
-                                </MinTableCell>
-                                <MinTableCell align="left">
-                                            <span>-{formatScore(row.delta)}</span>
-                                </MinTableCell>
-                                <MinTableCell align="left">
-                                    <Tooltip
-                                        title={<Moment fromNow>{row.date}</Moment>}
-                                        placement="bottom-end"
-                                        enterDelay={300}
-                                    >
-                                        <Moment
-                                            style={{ color: getDateDifferenceColor(row.date), ...noWrap }}
-                                            format="YYYY-MM-DD"
-                                        >
-                                            {row.date}
-                                        </Moment>
-                                    </Tooltip>
-                                </MinTableCell>
-                            </TableRow>
-                        ))}
+                                        {row.date}
+                                    </Moment>
+                                </Tooltip>
+                            </MinTableCell>
+                        </TableRow>
+                    ))}
                 </TableBody>
             </Table>
         </div>

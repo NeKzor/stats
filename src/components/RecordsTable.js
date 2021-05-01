@@ -20,7 +20,7 @@ import YouTubeIcon from '@material-ui/icons/YouTube';
 import PlayerAvatar from './PlayerAvatar';
 import { stableSort } from '../utils/stableSort';
 import { formatScore, getDateDifferenceColor } from '../utils/tools';
-import { useLocalStorage }  from '../Hooks';
+import { useLocalStorage } from '../Hooks';
 
 const rows = [
     { id: 'map.name', sortable: true, label: 'Chamber', align: 'left' },
@@ -328,12 +328,15 @@ const RecordsTable = ({ data, stats, useLiveDuration, storageKey }) => {
 
     const [history, setHistory] = React.useState(null);
 
-    const handleRequestSort = React.useCallback((_, property) => {
-        setStorage({ 
-            order: orderBy === property ? 'asc' : order === 'desc' ? 'asc' : 'desc',
-            orderBy: orderBy === property && order === 'asc' ? 'map.index' : property,
-        });
-    }, [order, orderBy, setStorage]);
+    const handleRequestSort = React.useCallback(
+        (_, property) => {
+            setStorage({
+                order: orderBy === property ? 'asc' : order === 'desc' ? 'asc' : 'desc',
+                orderBy: orderBy === property && order === 'asc' ? 'map.index' : property,
+            });
+        },
+        [order, orderBy, setStorage],
+    );
 
     const onClickHistory = React.useCallback(
         (id) => {

@@ -26,7 +26,7 @@ class DiscordIntegration {
         mostDemoUploads,
         mostYouTubeLinks,
         mostActiveMaps,
-        week
+        week,
     }) {
         return {
             title: `Recap - Week #${week}`,

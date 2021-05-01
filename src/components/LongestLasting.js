@@ -97,77 +97,76 @@ const RecordsTable = ({ data, useLiveDuration }) => {
             <Table size="small">
                 <LongestLastingHead order={order} orderBy={orderBy} onRequestSort={handleRequestSort} />
                 <TableBody>
-                    {stableSortSort(data, order, orderBy, thenBy)
-                        .map((row) => (
-                            <TableRow tabIndex={-1} key={row.id}>
-                                <MinTableCell
-                                    style={noWrap}
-                                    rowSpan={orderBy === 'map.name' || orderBy === 'map.index' ? row.map.records : 1}
-                                    align="left"
+                    {stableSortSort(data, order, orderBy, thenBy).map((row) => (
+                        <TableRow tabIndex={-1} key={row.id}>
+                            <MinTableCell
+                                style={noWrap}
+                                rowSpan={orderBy === 'map.name' || orderBy === 'map.index' ? row.map.records : 1}
+                                align="left"
+                            >
+                                <Link
+                                    color="inherit"
+                                    href={`https://board.iverb.me/chamber/${row.map.bestTimeId}`}
+                                    rel="noreferrer"
+                                    target="_blank"
                                 >
-                                    <Link
-                                        color="inherit"
-                                        href={`https://board.iverb.me/chamber/${row.map.bestTimeId}`}
-                                        rel="noreferrer"
-                                        target="_blank"
+                                    {row.map.alias}
+                                </Link>
+                            </MinTableCell>
+                            <MinTableCell align="left">{formatScore(row.score)}</MinTableCell>
+                            <MinTableCell align="left">
+                                <PlayerAvatar user={row.user} />
+                            </MinTableCell>
+                            <MinTableCell align="left">
+                                <Tooltip title="in days" placement="bottom-end" enterDelay={300}>
+                                    {useLiveDuration && row.beatenBy.id === null ? (
+                                        <Moment style={noWrap} diff={row.date} unit="days"></Moment>
+                                    ) : (
+                                        <span>{row.duration}</span>
+                                    )}
+                                </Tooltip>
+                            </MinTableCell>
+                            <MinTableCell align="left">
+                                <Tooltip
+                                    title={<Moment fromNow>{row.date}</Moment>}
+                                    placement="bottom-end"
+                                    enterDelay={300}
+                                >
+                                    <Moment
+                                        style={{ color: getDateDifferenceColor(row.date), ...noWrap }}
+                                        format="YYYY-MM-DD"
                                     >
-                                        {row.map.alias}
-                                    </Link>
-                                </MinTableCell>
-                                <MinTableCell align="left">{formatScore(row.score)}</MinTableCell>
-                                <MinTableCell align="left">
-                                    <PlayerAvatar user={row.user} />
-                                </MinTableCell>
-                                <MinTableCell align="left">
-                                    <Tooltip title="in days" placement="bottom-end" enterDelay={300}>
-                                        {useLiveDuration && row.beatenBy.id === null ? (
-                                            <Moment style={noWrap} diff={row.date} unit="days"></Moment>
-                                        ) : (
-                                            <span>{row.duration}</span>
-                                        )}
-                                    </Tooltip>
-                                </MinTableCell>
-                                <MinTableCell align="left">
+                                        {row.date}
+                                    </Moment>
+                                </Tooltip>
+                            </MinTableCell>
+                            <MinTableCell align="left">
+                                {row.beatenBy.length > 0 ? (
                                     <Tooltip
-                                        title={<Moment fromNow>{row.date}</Moment>}
+                                        title={<Moment fromNow>{row.beatenBy[0].date}</Moment>}
                                         placement="bottom-end"
                                         enterDelay={300}
                                     >
                                         <Moment
-                                            style={{ color: getDateDifferenceColor(row.date), ...noWrap }}
+                                            style={{ color: getDateDifferenceColor(row.beatenBy[0].date), ...noWrap }}
                                             format="YYYY-MM-DD"
                                         >
-                                            {row.date}
+                                            {row.beatenBy[0].date}
                                         </Moment>
                                     </Tooltip>
-                                </MinTableCell>
-                                <MinTableCell align="left">
-                                    {row.beatenBy.length > 0 ? (
-                                        <Tooltip
-                                            title={<Moment fromNow>{row.beatenBy[0].date}</Moment>}
-                                            placement="bottom-end"
-                                            enterDelay={300}
-                                        >
-                                            <Moment
-                                                style={{ color: getDateDifferenceColor(row.beatenBy[0].date), ...noWrap }}
-                                                format="YYYY-MM-DD"
-                                            >
-                                                {row.beatenBy[0].date}
-                                            </Moment>
-                                        </Tooltip>
-                                    ) : (
-                                        <span>ongoing</span>
-                                    )}
-                                </MinTableCell>
-                                <MinTableCell align="left">
-                                    {row.beatenBy.length > 0 ? (
-                                        <PlayerAvatar user={row.beatenBy[0].user} />
-                                    ) : (
-                                        <span>unbeaten</span>
-                                    )}
-                                </MinTableCell>
-                            </TableRow>
-                        ))}
+                                ) : (
+                                    <span>ongoing</span>
+                                )}
+                            </MinTableCell>
+                            <MinTableCell align="left">
+                                {row.beatenBy.length > 0 ? (
+                                    <PlayerAvatar user={row.beatenBy[0].user} />
+                                ) : (
+                                    <span>unbeaten</span>
+                                )}
+                            </MinTableCell>
+                        </TableRow>
+                    ))}
                 </TableBody>
             </Table>
         </div>

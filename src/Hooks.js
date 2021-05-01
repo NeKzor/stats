@@ -48,18 +48,20 @@ export const useLocalStorage = (key, initialStorage) => {
         if (storage) {
             try {
                 return JSON.parse(storage);
-            } catch {
-            }
+            } catch {}
         }
 
         localStorage.setItem(key, JSON.stringify(initialStorage));
         return initialStorage;
     });
 
-    const setStorage = React.useCallback((newStorage) => {
-        internalSetStorage(newStorage);
-        localStorage.setItem(key, JSON.stringify(newStorage));
-    }, [key, internalSetStorage]);
+    const setStorage = React.useCallback(
+        (newStorage) => {
+            internalSetStorage(newStorage);
+            localStorage.setItem(key, JSON.stringify(newStorage));
+        },
+        [key, internalSetStorage],
+    );
 
     return [storage, setStorage];
 };

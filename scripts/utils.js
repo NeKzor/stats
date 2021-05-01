@@ -66,7 +66,6 @@ const formatScore = (score) => {
     return (min > 0 ? min + ':' : '') + (sec < 10 && min > 0 ? '0' + sec : sec) + '.' + (csec < 10 ? '0' + csec : csec);
 };
 
-
 module.exports = {
     delay,
     importJson,

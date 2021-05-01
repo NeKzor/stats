@@ -112,12 +112,15 @@ const AboutView = () => {
                 </Typography>
                 <br />
                 <Typography variant="body1">
-                    This is <Link rel="noopener" href="https://board.iverb.me">
+                    This is{' '}
+                    <Link rel="noopener" href="https://board.iverb.me">
                         iverb
-                    </Link> 1½ or something idk. Mainly inspired by{' '}
+                    </Link>{' '}
+                    1½ or something idk. Mainly inspired by{' '}
                     <Link rel="noopener" href="https://mkwrs.com">
                         mkwrs.com
-                    </Link>. Updates are hourly.
+                    </Link>
+                    . Updates are hourly.
                 </Typography>
                 <Padding />
                 <Typography variant="h5">Next Update</Typography>

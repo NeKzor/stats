@@ -6,7 +6,7 @@ const RecordsChart = ({ labels, series, title, theme, rest }) => {
     const isDarkTheme = theme.palette.type === 'dark';
 
     if (rest) {
-        const rest = series.slice(11).reduce((acc, val) => acc += val, 0);
+        const rest = series.slice(11).reduce((acc, val) => (acc += val), 0);
 
         series = series.slice(0, 11);
         labels = labels.slice(0, 11);
