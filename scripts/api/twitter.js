@@ -14,7 +14,7 @@ const locations = [
 const rng = (max) => Math.floor(Math.random() * Math.floor(max));
 const youTubeLink = (media) => (media ? `https://youtube.com/watch?v=${media}` : '');
 
-const defaultBioOptions = { status: '#ONLINE', wrsThisWeek: 0, pbsThisWeek: 0 };
+const defaultBioOptions = { wrsThisWeek: 0, pbsThisWeek: 0 };
 
 class TwitterIntegration {
     constructor(consumer_key, consumer_secret, access_token_key, access_token_secret) {
@@ -35,7 +35,7 @@ class TwitterIntegration {
             return Promise.resolve();
         }
 
-        const { status, wrsThisWeek, pbsThisWeek } = {
+        const { wrsThisWeek, pbsThisWeek } = {
             ...this.lastBioOptions,
             ...options,
         };
@@ -48,7 +48,7 @@ class TwitterIntegration {
         }
 
         const description = `
-Portal 2 Challenge Mode World Records ${status}
+Portal 2 Challenge Mode World Records
 Property of @nekznekz
 
 WRs set this week: ${wrsThisWeek}

@@ -90,6 +90,8 @@ const asWr = (entry, index, items) => {
     };
 };
 
+const fetchEnabled = process.argv.indexOf('--enable') !== -1;
+
 const fetchArg = process.argv.indexOf('--fetch');
 const fetchValue = fetchArg !== -1 ? process.argv[fetchArg + 1] : null;
 const maxDaysAgo = fetchValue ? Math.max(1, Math.min(120, parseInt(fetchValue, 10))) : 1;
@@ -109,10 +111,7 @@ const findNewEntries = (changelog, latestEntry) => {
     return false;
 };
 
-const main = async (outputDir, weeklyRecap, recapDay) => {
-    const cache = importJson(cacheFile);
-
-    const newWrs = [];
+const fetchAndCacheChangelog = async (cache, newWrs) => {
     let retryCount = 0;
 
     try {
@@ -126,7 +125,7 @@ const main = async (outputDir, weeklyRecap, recapDay) => {
             if (++retryCount === 10) {
                 throw new Error(
                     'Failed to find last changelog entry. Try --fetch ' +
-                        moment().diff(moment(cache.changelog[retryCount].time_gained), 'days'),
+                        moment().diff(moment(cache.changelog[retryCount].time_gained), 'days') + 1,
                 );
             }
         }
@@ -167,6 +166,16 @@ const main = async (outputDir, weeklyRecap, recapDay) => {
         );
     } catch (error) {
         log.error(error);
+    }
+};
+
+const main = async (outputDir, weeklyRecap, recapDay) => {
+    const cache = importJson(cacheFile);
+
+    const newWrs = [];
+
+    if (fetchEnabled) {
+        await fetchAndCacheChangelog(cache, newWrs);
     }
 
     const { changelog } = cache;
@@ -719,9 +728,5 @@ const inspect = (obj) => console.dir(obj, { depth: 6 });
 if (process.argv.some((arg) => arg === '--test')) {
     main(path.join(__dirname, '../api/')).catch(inspect);
 }
-
-process.on('SIGINT', () => {
-    twitter.updateBio({ status: '#OFFLINE' }).finally(() => process.exit());
-});
 
 module.exports = main;
