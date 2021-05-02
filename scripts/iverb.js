@@ -45,7 +45,7 @@ const findPartners = (entry, index, items) => {
                 }
             }
 
-            entry.duration = moment(beatenBy ? beatenBy.date : undefined).diff(moment(entry.date), 'd');
+            entry.duration = moment(beatenBy ? beatenBy.date : undefined).diff(moment(entry.date), 's');
             prevEntry.partnerId = entry.id;
             prevEntry.beatenBy = entry.beatenBy.map((beatenBy) => ({ ...beatenBy })).reverse();
             prevEntry.duration = entry.duration;
@@ -82,7 +82,7 @@ const asWr = (entry, index, items) => {
         id: entry.id,
         date: entry.time_gained,
         score: parseInt(entry.score, 10),
-        duration: moment(beatenBy ? beatenBy.time_gained : undefined).diff(moment(entry.time_gained), 'd'),
+        duration: moment(beatenBy ? beatenBy.time_gained : undefined).diff(moment(entry.time_gained), 's'),
         beatenBy: beatenBy ? [{ id: beatenBy.id }] : [],
         delta,
         demo: entry.hasDemo === '1',
@@ -161,7 +161,10 @@ const main = async (outputDir, weeklyRecap, recapDay) => {
             ...newEntries.filter((entry) => entry.wr_gain === '1' && entry.banned === '0').map((entry) => entry.id),
         );
 
-        log.info(`updated changelog with ${newEntries.length} new entries (wrs: ${newWrs.length})`);
+        log.info(
+            `updated changelog with ${newEntries.length} new entries` +
+                ` (wrs: ${newWrs.length}, fetched: ${changelog.length})`,
+        );
     } catch (error) {
         log.error(error);
     }
@@ -430,6 +433,66 @@ const generateStats = (overall) => {
 };
 
 const generateRankings = (campaign, statsPage) => {
+    const mapWrs = campaign.maps
+        .map((map) => {
+            const history = [...map.history].reverse();
+
+            return history.map((wr) => {
+                const beatenBy = history.find((item) => item.score < wr.score);
+                return {
+                    ...wr,
+                    beatenBy: beatenBy
+                        ? [
+                              {
+                                  id: beatenBy.id,
+                                  date: beatenBy.date,
+                                  user: { ...beatenBy.user },
+                                  score: beatenBy.score,
+                              },
+                          ]
+                        : [],
+                };
+            });
+        })
+        .flat();
+
+    const isSelfImprovedWr = (wr) => {
+        const map = campaign.maps.find((chamber) => chamber.map.bestTimeId === wr.map.bestTimeId);
+        if (!map) {
+            throw new Error('Map not part of campaign');
+        }
+
+        const idx = map.history.findIndex(({ id }) => id === wr.id);
+        if (idx === -1) {
+            throw new Error('Record not found in history');
+        }
+
+        const previousWrs = map.history.slice(idx + 1);
+        const [lastWr] = previousWrs;
+
+        return previousWrs
+            .filter(({ score }) => score === lastWr.score)
+            .find(({ user }) => user.id === wr.user.id);
+    };
+
+    const getNextWr = (wr) => {
+        if (
+            wr.beatenBy.length > 0 &&
+            !wr.beatenBy.some(({ id }) => id === wr.id) &&
+            wr.beatenBy.some(({ user }) => user.id === wr.user.id)
+        ) {
+            const ids = wr.beatenBy.map(({ id }) => id);
+            const newWrs = mapWrs.filter((wr) => ids.some((id) => wr.id === id));
+            const newWr = newWrs.find(({ user }) => user.id === wr.user.id);
+
+            if (newWr) {
+                return getNextWr(newWr);
+            }
+        }
+
+        return wr;
+    };
+
     const totalTime = campaign.maps.map((t) => t.wrs[0].score).reduce((a, b) => a + b, 0);
 
     let users = campaign.maps.map((t) => t.wrs.map((r) => r.user)).flat();
@@ -460,7 +523,10 @@ const generateRankings = (campaign, statsPage) => {
         return campaign;
     }
 
-    users = campaign.maps.map((t) => t.history.map((r) => r.user)).flat();
+    users = campaign.maps
+        .map((t) => (t.history.length > 0 ? t.history : t.wrs).map(({ user, date }) => ({ ...user, date })))
+        .flat();
+
     wrs = campaign.maps.map((t) => t.history).flat();
     frequency = users.reduce((count, user) => {
         count[user.id] = (count[user.id] || 0) + 1;
@@ -469,14 +535,35 @@ const generateRankings = (campaign, statsPage) => {
 
     const historyLeaderboard = Object.keys(frequency)
         .sort((a, b) => frequency[b] - frequency[a])
-        .map((key) => ({
-            user: users.find((u) => u.id === key),
-            wrs: frequency[key],
-            duration: wrs
-                .filter((r) => r.user.id === key)
-                .map((r) => r.duration)
-                .reduce((a, b) => a + b, 0),
-        }));
+        .map((key) => {
+            const user = users.filter((u) => u.id === key).sort((a, b) => b.date.localeCompare(a.date))[0];
+            delete user.date;
+
+            const durationExact = mapWrs
+                .filter((r) => r.user.id === key && r.duration)
+                .map((r) => {
+                    const reignWr = getNextWr(r);
+
+                    if (isSelfImprovedWr(r)) {
+                        return 0;
+                    }
+
+                    const [beatenBy] = reignWr.beatenBy;
+                    const duration = moment(beatenBy ? beatenBy.date : undefined).diff(moment(r.date), 's');
+                    if (duration < 0) {
+                        log.warn('negative duration for:', r);
+                    }
+
+                    return duration;
+                })
+                .reduce((a, b) => a + b, 0);
+
+            return {
+                user,
+                wrs: frequency[key],
+                duration: durationExact,
+            };
+        });
 
     users = campaign.maps
         .map((t) => {

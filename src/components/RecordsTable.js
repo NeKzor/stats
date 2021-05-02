@@ -19,7 +19,7 @@ import HistoryIcon from '@material-ui/icons/History';
 import YouTubeIcon from '@material-ui/icons/YouTube';
 import PlayerAvatar from './PlayerAvatar';
 import { stableSort } from '../utils/stableSort';
-import { formatScore, getDateDifferenceColor } from '../utils/tools';
+import { formatDuration, formatScore, getDateDifferenceColor } from '../utils/tools';
 import { useLocalStorage } from '../Hooks';
 
 const rows = [
@@ -99,6 +99,7 @@ const useRowStyles = makeStyles((theme) => ({
 const RecordsHistoryRow = ({ wr, useLiveDuration }) => {
     const score = formatScore(wr.score);
     const delta = wr.delta !== null ? formatScore(wr.delta) : null;
+    const [duration, durationTitle] = formatDuration(wr.duration);
 
     const renderCell = wr.isPartner !== false || !wr.partnerId;
     const isCurrentWr = wr.beatenBy.id === null;
@@ -107,7 +108,7 @@ const RecordsHistoryRow = ({ wr, useLiveDuration }) => {
         <TableRow tabIndex={-1}>
             {renderCell && (
                 <MinTableCell align="left" rowSpan={wr.isPartner === true ? 2 : 1}>
-                    <Tooltip title={<Moment fromNow>{wr.date}</Moment>} placement="bottom-end" enterDelay={300}>
+                    <Tooltip title={<Moment fromNow>{wr.date}</Moment>} placement="bottom-center" enterDelay={300}>
                         <Moment style={{ color: getDateDifferenceColor(wr.date), ...noWrap }} format="YYYY-MM-DD">
                             {wr.date}
                         </Moment>
@@ -136,11 +137,11 @@ const RecordsHistoryRow = ({ wr, useLiveDuration }) => {
             )}
             {renderCell && (
                 <MinTableCell align="left" rowSpan={wr.isPartner === true ? 2 : 1}>
-                    <Tooltip title="in days" placement="bottom-end" enterDelay={300}>
+                    <Tooltip title={durationTitle} placement="bottom-center" enterDelay={300}>
                         {useLiveDuration && isCurrentWr ? (
                             <Moment style={noWrap} diff={wr.date} unit="days"></Moment>
                         ) : (
-                            <span>{wr.duration}</span>
+                            <span>{duration}</span>
                         )}
                     </Tooltip>
                 </MinTableCell>
@@ -223,14 +224,14 @@ const RecordsRow = ({ wr, orderBy, useLiveDuration, history, onClickHistory }) =
                     <PlayerAvatar user={wr.user} />
                 </MinTableCell>
                 <MinTableCell align="left">
-                    <Tooltip title={<Moment fromNow>{wr.date}</Moment>} placement="bottom-end" enterDelay={300}>
+                    <Tooltip title={<Moment fromNow>{wr.date}</Moment>} placement="bottom-center" enterDelay={300}>
                         <Moment style={{ color: getDateDifferenceColor(wr.date), ...noWrap }} format="YYYY-MM-DD">
                             {wr.date}
                         </Moment>
                     </Tooltip>
                 </MinTableCell>
                 <MinTableCell align="left">
-                    <Tooltip title="in days" placement="bottom-end" enterDelay={300}>
+                    <Tooltip title="in days" placement="bottom-center" enterDelay={300}>
                         {useLiveDuration ? (
                             <Moment style={noWrap} diff={wr.date} unit="days"></Moment>
                         ) : (
@@ -378,7 +379,7 @@ const RecordsTable = ({ data, stats, useLiveDuration, storageKey }) => {
                             <MinTableCell>
                                 <Tooltip
                                     title={moment.duration(stats.totalTime, 'ms').humanize()}
-                                    placement="bottom-end"
+                                    placement="bottom-center"
                                     enterDelay={300}
                                 >
                                     <span>{formatScore(stats.totalTime)}</span>

@@ -8,6 +8,7 @@ import TableRow from '@material-ui/core/TableRow';
 import TableSortLabel from '@material-ui/core/TableSortLabel';
 import Tooltip from '@material-ui/core/Tooltip';
 import { stableSort, stableSortSort } from '../utils/stableSort';
+import { formatDuration } from '../utils/tools';
 import PlayerAvatar from './PlayerAvatar';
 
 const rows = [
@@ -96,19 +97,25 @@ const RecordsTable = ({ data, showDuration }) => {
                     showDuration={showDuration}
                 />
                 <TableBody>
-                    {(showDuration ? stableSortSort : stableSort)(data, order, orderBy, thenBy).map((row) => (
-                        <TableRow tabIndex={-1} key={row.user.id}>
-                            <MinTableCell align="left">
-                                <PlayerAvatar user={row.user} />
-                            </MinTableCell>
-                            <MinTableCell align="left">{row.wrs}</MinTableCell>
-                            {showDuration && (
+                    {(showDuration ? stableSortSort : stableSort)(data, order, orderBy, thenBy).map((row) => {
+                        const [duration, durationTitle] = formatDuration(row.duration);
+
+                        return (
+                            <TableRow tabIndex={-1} key={row.user.id}>
                                 <MinTableCell align="left">
-                                    {row.duration} day{row.duration === 1 ? '' : 's'}
+                                    <PlayerAvatar user={row.user} />
                                 </MinTableCell>
-                            )}
-                        </TableRow>
-                    ))}
+                                <MinTableCell align="left">{row.wrs}</MinTableCell>
+                                {showDuration && (
+                                    <MinTableCell align="left">
+                                        <Tooltip title={durationTitle} placement="bottom-center" enterDelay={300}>
+                                            <span>{duration} day{duration === 1 ? '' : 's'}</span>
+                                        </Tooltip>
+                                    </MinTableCell>
+                                )}
+                            </TableRow>
+                        );
+                    })}
                 </TableBody>
             </Table>
         </div>

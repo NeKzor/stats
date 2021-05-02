@@ -6,10 +6,10 @@ export function formatScore(score) {
         return score;
     }
 
-    let csec = score % 100;
-    let tsec = Math.floor(score / 100);
-    let sec = tsec % 60;
-    let min = Math.floor(tsec / 60);
+    const csec = score % 100;
+    const tsec = Math.floor(score / 100);
+    const sec = tsec % 60;
+    const min = Math.floor(tsec / 60);
 
     return (min > 0 ? min + ':' : '') + (sec < 10 && min > 0 ? '0' + sec : sec) + '.' + (csec < 10 ? '0' + csec : csec);
 }
@@ -30,4 +30,31 @@ const minuteScale = scaleLinear()
 
 export function getDateTimeDifferenceColor(pastMinutes) {
     return pastMinutes >= 0 && pastMinutes <= 24 * 60 ? minuteScale(pastMinutes) : undefined;
+}
+
+export function formatDuration(duration) {
+    const days = duration / 60 / 60 / 24;
+
+    const y = days / 365;
+    const d = days % 365;
+    const h = (duration / 60 / 60) % 24;
+    const m = (duration / 60) % 60;
+
+    const g = (value) => value === 1 ? '' : 's';
+
+    const title = [];
+
+    const addTitle = (value, unit) => {
+        value = Math.floor(value);
+        if (unit !== 'year' || value > 0) {
+            title.push(`${value} ${unit}${g(value)}`)
+        }
+    }
+
+    addTitle(Math.floor(y), 'year');
+    addTitle(Math.floor(d), 'day');
+    addTitle(Math.floor(h), 'hour');
+    addTitle(Math.floor(m), 'minute');
+
+    return [Math.floor(days), title.join(', ')];
 }
