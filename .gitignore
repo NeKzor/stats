@@ -4,6 +4,7 @@ api/
 .login
 cache.json
 .vscode/
+backup/
 
 node_modules/
 coverage/
