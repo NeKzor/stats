@@ -3,6 +3,7 @@ api/
 .env
 .login
 cache.json
+points-cache.json
 .vscode/
 backup/
 

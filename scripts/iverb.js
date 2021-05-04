@@ -6,6 +6,7 @@ const { Portal2Map, Portal2MapType } = require('./api/portal2');
 const recapCommunity = require('./community');
 const DiscordIntegration = require('./api/discord');
 const TwitterIntegration = require('./api/twitter');
+const computePoints = require('./points');
 
 require('dotenv').config();
 
@@ -125,7 +126,8 @@ const fetchAndCacheChangelog = async (cache, newWrs) => {
             if (++retryCount === 10) {
                 throw new Error(
                     'Failed to find last changelog entry. Try --fetch ' +
-                        moment().diff(moment(cache.changelog[retryCount].time_gained), 'days') + 1,
+                        moment().diff(moment(cache.changelog[retryCount].time_gained), 'days') +
+                        1,
                 );
             }
         }
@@ -330,16 +332,33 @@ const main = async (outputDir, weeklyRecap, recapDay) => {
     tryMakeDir(`${outputDir}/race`);
     tryMakeDir(`${outputDir}/race/unique`);
     tryMakeDir(`${outputDir}/race/total`);
+    tryMakeDir(`${outputDir}/race/points`);
+
+    const computedPoints = computePoints(changelog, true);
 
     game.campaigns.forEach((campaign) => {
+        const unique = generateRaceChart(campaign, true, computedPoints);
+        const total = generateRaceChart(campaign, false, null);
+
         tryExportJson(
             `${outputDir}/race/unique/${campaign.name.toLowerCase().replace(/ /g, '-')}.json`,
-            generateRaceChart(campaign, true),
+            {
+                firstRecordDate: unique.firstRecordDate,
+                data: unique.data.map((entry) => ({ ...entry, points: undefined })),
+            },
+            true,
+        );
+        tryExportJson(
+            `${outputDir}/race/points/${campaign.name.toLowerCase().replace(/ /g, '-')}.json`,
+            {
+                firstRecordDate: unique.firstRecordDate,
+                data: unique.data.map((entry) => ({ ...entry, records: undefined })),
+            },
             true,
         );
         tryExportJson(
             `${outputDir}/race/total/${campaign.name.toLowerCase().replace(/ /g, '-')}.json`,
-            generateRaceChart(campaign, false),
+            total,
             true,
         );
     });
@@ -479,9 +498,7 @@ const generateRankings = (campaign, statsPage) => {
         const previousWrs = map.history.slice(idx + 1);
         const [lastWr] = previousWrs;
 
-        return previousWrs
-            .filter(({ score }) => score === lastWr.score)
-            .find(({ user }) => user.id === wr.user.id);
+        return previousWrs.filter(({ score }) => score === lastWr.score).find(({ user }) => user.id === wr.user.id);
     };
 
     const getNextWr = (wr) => {
@@ -602,7 +619,9 @@ const generateRankings = (campaign, statsPage) => {
     return campaign;
 };
 
-const generateRaceChart = (campaign, unique) => {
+const generateRaceChart = (campaign, unique, computedPoints) => {
+    log.info(`generating race chart for ${campaign.name} (unique: ${unique})`);
+
     const getSnapshotRecords = (history, snapshotDate) => {
         const wrs = history.filter(({ date }) => snapshotDate.localeCompare(date.slice(0, 10)) >= 0);
         const [wr] = wrs;
@@ -649,18 +668,47 @@ const generateRaceChart = (campaign, unique) => {
     const snapshot = getSnapshot(null);
 
     while (then.diff(now, 'days') < 0) {
-        const date = then.format('YYYY-MM-DD');
-        const currentSnapshot = unique ? getSnapshot(date) : snapshot;
+        const snapshotDate = then.format('YYYY-MM-DD');
+        const currentSnapshot = unique ? getSnapshot(snapshotDate) : snapshot;
+
+        const rankingsSnapshot = (() => {
+            if (!computedPoints) {
+                return null;
+            }
+
+            const index = computedPoints.findIndex((entry) => entry.currentDay >= snapshotDate);
+            if (index === -1) {
+                log.warn('invalid index for ', snapshotDate);
+                return [];
+            }
+
+            const offset = computedPoints[index].currentDay === snapshotDate ? 0 : -1;
+            const rankings = computedPoints[index - offset];
+
+            switch (campaign.name) {
+                case 'Single Player':
+                    return rankings.singlePlayer || [];
+                case 'Cooperative':
+                    return rankings.cooperative || [];
+                default:
+                    return rankings.overall || [];
+            }
+        })();
 
         for (const [userId, { user }] of snapshot) {
             const [_, userSnapshot] = currentSnapshot.find(([userIdSnapshot]) => userIdSnapshot === userId) || [];
 
-            const data = result[user.id] || { records: [], user };
+            const data = result[user.id] || { records: [], points: rankingsSnapshot ? [] : undefined, user };
 
-            data.records.push(
-                ((userSnapshot ? userSnapshot.wrs[date] : null) || 0) +
-                    (unique ? 0 : data.records[data.records.length - 1] || 0),
-            );
+            const curRecords = (userSnapshot ? userSnapshot.wrs[snapshotDate] : null) || 0;
+            const prevRecords = unique ? 0 : data.records[data.records.length - 1] || 0;
+
+            data.records.push(curRecords + prevRecords);
+
+            if (rankingsSnapshot) {
+                const userRank = rankingsSnapshot.find((entry) => entry.user.id === user.id);
+                data.points.push(userRank ? userRank.points : 0);
+            }
 
             result[user.id] = data;
         }

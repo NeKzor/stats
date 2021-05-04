@@ -74,11 +74,11 @@ const RaceView = ({ match }) => {
                 if (isMounted.current) {
                     const users = data.map(({ user }) => user);
                     const [firstEntry] = data;
-                    const length = firstEntry ? firstEntry.records.length : 0;
+                    const length = firstEntry ? (firstEntry.records || firstEntry.points).length : 0;
 
                     setRace({
-                        data: data.reduce((chart, { user, records }) => {
-                            chart[user.id] = records;
+                        data: data.reduce((chart, { user, records, points }) => {
+                            chart[user.id] = records || (points ? points.map((value) => Math.floor(value)) : []);
                             return chart;
                         }, {}),
                         timeline: Array(length)
@@ -134,6 +134,7 @@ const RaceView = ({ match }) => {
                             <Select value={type} onChange={onChangeType}>
                                 <MenuItem value={'unique'}>World Records</MenuItem>
                                 <MenuItem value={'total'}>Total World Records</MenuItem>
+                                <MenuItem value={'points'}>Points</MenuItem>
                             </Select>
                         </FormControl>
                     </Box>
