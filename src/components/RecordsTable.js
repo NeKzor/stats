@@ -378,7 +378,7 @@ const RecordsTable = ({ data, stats, useLiveDuration, storageKey }) => {
                             <MinTableCell align="right">Total Time</MinTableCell>
                             <MinTableCell>
                                 <Tooltip
-                                    title={moment.duration(stats.totalTime, 'ms').humanize()}
+                                    title={moment.duration(stats.totalTime * 10, 'ms').humanize()}
                                     placement="bottom"
                                     enterDelay={300}
                                 >
