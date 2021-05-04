@@ -121,7 +121,7 @@ const RecordsTable = ({ data, useLiveDuration }) => {
                                     <PlayerAvatar user={row.user} />
                                 </MinTableCell>
                                 <MinTableCell align="left">
-                                    <Tooltip title={durationTitle} placement="bottom-center" enterDelay={300}>
+                                    <Tooltip title={durationTitle} placement="bottom" enterDelay={300}>
                                         {useLiveDuration && row.beatenBy.id === null ? (
                                             <Moment style={noWrap} diff={row.date} unit="days"></Moment>
                                         ) : (
@@ -132,7 +132,7 @@ const RecordsTable = ({ data, useLiveDuration }) => {
                                 <MinTableCell align="left">
                                     <Tooltip
                                         title={<Moment fromNow>{row.date}</Moment>}
-                                        placement="bottom-center"
+                                        placement="bottom"
                                         enterDelay={300}
                                     >
                                         <Moment
@@ -147,7 +147,7 @@ const RecordsTable = ({ data, useLiveDuration }) => {
                                     {row.beatenBy.length > 0 ? (
                                         <Tooltip
                                             title={<Moment fromNow>{row.beatenBy[0].date}</Moment>}
-                                            placement="bottom-center"
+                                            placement="bottom"
                                             enterDelay={300}
                                         >
                                             <Moment

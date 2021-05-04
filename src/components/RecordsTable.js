@@ -108,7 +108,7 @@ const RecordsHistoryRow = ({ wr, useLiveDuration }) => {
         <TableRow tabIndex={-1}>
             {renderCell && (
                 <MinTableCell align="left" rowSpan={wr.isPartner === true ? 2 : 1}>
-                    <Tooltip title={<Moment fromNow>{wr.date}</Moment>} placement="bottom-center" enterDelay={300}>
+                    <Tooltip title={<Moment fromNow>{wr.date}</Moment>} placement="bottom" enterDelay={300}>
                         <Moment style={{ color: getDateDifferenceColor(wr.date), ...noWrap }} format="YYYY-MM-DD">
                             {wr.date}
                         </Moment>
@@ -137,7 +137,7 @@ const RecordsHistoryRow = ({ wr, useLiveDuration }) => {
             )}
             {renderCell && (
                 <MinTableCell align="left" rowSpan={wr.isPartner === true ? 2 : 1}>
-                    <Tooltip title={durationTitle} placement="bottom-center" enterDelay={300}>
+                    <Tooltip title={durationTitle} placement="bottom" enterDelay={300}>
                         {useLiveDuration && isCurrentWr ? (
                             <Moment style={noWrap} diff={wr.date} unit="days"></Moment>
                         ) : (
@@ -224,14 +224,14 @@ const RecordsRow = ({ wr, orderBy, useLiveDuration, history, onClickHistory }) =
                     <PlayerAvatar user={wr.user} />
                 </MinTableCell>
                 <MinTableCell align="left">
-                    <Tooltip title={<Moment fromNow>{wr.date}</Moment>} placement="bottom-center" enterDelay={300}>
+                    <Tooltip title={<Moment fromNow>{wr.date}</Moment>} placement="bottom" enterDelay={300}>
                         <Moment style={{ color: getDateDifferenceColor(wr.date), ...noWrap }} format="YYYY-MM-DD">
                             {wr.date}
                         </Moment>
                     </Tooltip>
                 </MinTableCell>
                 <MinTableCell align="left">
-                    <Tooltip title="in days" placement="bottom-center" enterDelay={300}>
+                    <Tooltip title="in days" placement="bottom" enterDelay={300}>
                         {useLiveDuration ? (
                             <Moment style={noWrap} diff={wr.date} unit="days"></Moment>
                         ) : (
@@ -379,7 +379,7 @@ const RecordsTable = ({ data, stats, useLiveDuration, storageKey }) => {
                             <MinTableCell>
                                 <Tooltip
                                     title={moment.duration(stats.totalTime, 'ms').humanize()}
-                                    placement="bottom-center"
+                                    placement="bottom"
                                     enterDelay={300}
                                 >
                                     <span>{formatScore(stats.totalTime)}</span>

@@ -121,7 +121,7 @@ const RecordsTable = ({ data }) => {
                             <MinTableCell align="left">
                                 <Tooltip
                                     title={<Moment fromNow>{row.date}</Moment>}
-                                    placement="bottom-center"
+                                    placement="bottom"
                                     enterDelay={300}
                                 >
                                     <Moment
