@@ -61,8 +61,8 @@ const App = () => {
                             <Route exact path="/ranks/:date?" component={RankingsView} />
                             <Route exact path="/stats/:date?" component={StatsView} />
                             <Route exact path="/race/:date?" component={RaceView} />
-                            <Route exact path="/about" component={AboutView} />
                             <Route exact path="/demo" component={DemoView} />
+                            <Route exact path="/about" component={AboutView} />
                             <Route component={NotFoundView} />
                         </Switch>
                     </div>
