@@ -182,9 +182,10 @@ const main = async (outputDir, weeklyRecap, recapDay) => {
 
     const { changelog } = cache;
 
-    // Not that accurate, we really need iso standard for dates to make things easier :>
-    const monday = moment().weekday(1).hour(0).minute(0).second(0);
-    const sunday = moment().weekday(7).hour(23).minute(59).second(59);
+    const monday = moment().startOf('isoWeek').format('YYYY-MM-DD');
+    const sunday = moment().endOf('isoWeek').format('YYYY-MM-DD');
+    log.info(`week start -> end: ${monday} -> ${sunday}`);
+
     let wrsThisWeek = 0;
     let pbsThisWeek = 0;
 
@@ -194,8 +195,9 @@ const main = async (outputDir, weeklyRecap, recapDay) => {
         }
 
         const isWr = entry.wr_gain === '1';
+        const date = entry.time_gained.slice(0, 10);
 
-        if (moment(entry.time_gained).isBetween(monday, sunday)) {
+        if (date >= monday && date <= sunday) {
             if (isWr) {
                 ++wrsThisWeek;
             }
