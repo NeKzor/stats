@@ -40,16 +40,16 @@ export function formatDuration(duration) {
     const h = (duration / 60 / 60) % 24;
     const m = (duration / 60) % 60;
 
-    const g = (value) => value === 1 ? '' : 's';
+    const g = (value) => (value === 1 ? '' : 's');
 
     const title = [];
 
     const addTitle = (value, unit) => {
         value = Math.floor(value);
         if (unit !== 'year' || value > 0) {
-            title.push(`${value} ${unit}${g(value)}`)
+            title.push(`${value} ${unit}${g(value)}`);
         }
-    }
+    };
 
     addTitle(Math.floor(y), 'year');
     addTitle(Math.floor(d), 'day');

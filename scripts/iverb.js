@@ -358,11 +358,7 @@ const main = async (outputDir, weeklyRecap, recapDay) => {
             },
             true,
         );
-        tryExportJson(
-            `${outputDir}/race/total/${campaign.name.toLowerCase().replace(/ /g, '-')}.json`,
-            total,
-            true,
-        );
+        tryExportJson(`${outputDir}/race/total/${campaign.name.toLowerCase().replace(/ /g, '-')}.json`, total, true);
     });
 
     game.campaigns.forEach((campaign) => delete campaign.maps);

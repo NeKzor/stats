@@ -109,7 +109,9 @@ const RecordsTable = ({ data, showDuration }) => {
                                 {showDuration && (
                                     <MinTableCell align="left">
                                         <Tooltip title={durationTitle} placement="bottom" enterDelay={300}>
-                                            <span>{duration} day{duration === 1 ? '' : 's'}</span>
+                                            <span>
+                                                {duration} day{duration === 1 ? '' : 's'}
+                                            </span>
                                         </Tooltip>
                                     </MinTableCell>
                                 )}
