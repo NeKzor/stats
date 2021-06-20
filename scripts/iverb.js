@@ -336,7 +336,7 @@ const main = async (outputDir, weeklyRecap, recapDay) => {
     tryMakeDir(`${outputDir}/race/total`);
     tryMakeDir(`${outputDir}/race/points`);
 
-    const computedPoints = computePoints(changelog, true);
+    const computedPoints = computePoints(changelog, moment().add(5, 'minutes').get('hour') !== 0);
 
     game.campaigns.forEach((campaign) => {
         const unique = generateRaceChart(campaign, true, computedPoints);
