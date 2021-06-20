@@ -96,10 +96,22 @@ const AppBar = ({ location }) => {
                     ))}
                 <Divider />
                 <List>
-                    <ListItem button key={0} component={RouterLink} to={'/demo'}>
+                    <ListItem
+                        button
+                        key={0}
+                        component={RouterLink}
+                        to={'/demo'}
+                        className={page.link === '/demo' ? classes.active : undefined}
+                    >
                         <ListItemText primary={'Demo Inspection'} />
                     </ListItem>
-                    <ListItem button key={1} component={RouterLink} to={'/about'}>
+                    <ListItem
+                        button
+                        key={0}
+                        component={RouterLink}
+                        to={'/about'}
+                        className={page.link === '/about' ? classes.active : undefined}
+                    >
                         <ListItemText primary={'About'} />
                     </ListItem>
                 </List>
