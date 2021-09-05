@@ -44,7 +44,7 @@ const useStyles = makeStyles((theme) => ({
 
 const pageLinks = [
     { title: '404 - Page Not Found', link: null, inDrawer: false },
-    { title: 'iverb-stats', link: '/', inDrawer: false },
+    { title: 'stats', link: '/', inDrawer: false },
     { title: 'Records', link: '/records', inDrawer: true, default: true },
     { title: 'Rankings', link: '/ranks', inDrawer: true, default: true },
     { title: 'Statistics', link: '/stats', inDrawer: true, default: true },
@@ -76,7 +76,7 @@ const AppBar = ({ location }) => {
         <div className={classes.list}>
             <List>
                 <ListItem button key={0} component={RouterLink} to={'/'}>
-                    <ListItemText primary="iverb-stats" />
+                    <ListItemText primary="stats" />
                 </ListItem>
             </List>
             <Divider />
@@ -130,7 +130,7 @@ const AppBar = ({ location }) => {
                     </Hidden>
                     <Typography variant="h6" color="inherit">
                         <Link component={RouterLink} to="/" color="inherit" underline="none">
-                            iverb-stats
+                            stats
                         </Link>
                     </Typography>
                 </Toolbar>

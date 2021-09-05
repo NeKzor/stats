@@ -25,9 +25,9 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 /* const branches = [
-    { repo: 'NeKzor/iverb-stats', branch: 'master' },
+    { repo: 'NeKzor/stats', branch: 'master' },
     { repo: 'NeKzBot/iverb-stats', branch: 'api' },
-    { repo: 'NeKzor/iverb-stats', branch: 'gh-pages' },
+    { repo: 'NeKzor/stats', branch: 'gh-pages' },
 ];
 
 const noWrap = { whiteSpace: 'nowrap' };
@@ -212,8 +212,8 @@ const AboutView = () => {
                 </FormGroup>
                 <Padding />
                 <Tooltip title="Source Code">
-                    <Link rel="noopener" href="https://github.com/NeKzor/iverb-stats">
-                        github.com/NeKzor/iverb-stats
+                    <Link rel="noopener" href="https://github.com/NeKzor/stats">
+                        github.com/NeKzor/stats
                     </Link>
                 </Tooltip>
             </Paper>

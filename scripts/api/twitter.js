@@ -61,7 +61,7 @@ PBs set this week: ${pbsThisWeek}`.trim();
             .then(() => log.info('[twitter] account profile updated'))
             .catch(log.error);
     }
-    // TODO: Use Twitter name instead of user name once iverb supports it
+    // TODO: Use Twitter name instead of user name once the site supports it
     sendTweet(wrs, map) {
         if (!this.enabled) {
             return Promise.resolve();

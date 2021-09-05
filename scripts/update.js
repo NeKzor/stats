@@ -1,6 +1,6 @@
 const ghPages = require('gh-pages');
 const cron = require('node-cron');
-const iverb = require('./iverb');
+const boards = require('./iverb');
 const { log } = require('./utils');
 const moment = require('moment');
 
@@ -27,8 +27,8 @@ const main = async () => {
     }
 
     try {
-        log.info('scraping iverb (recap: ' + isRecap + ')');
-        await iverb(output, isRecap, recapDay);
+        log.info('scraping boards (recap: ' + isRecap + ')');
+        await boards(output, isRecap, recapDay);
     } catch (err) {
         log.error(err);
     }

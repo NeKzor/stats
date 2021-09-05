@@ -30,7 +30,7 @@ class DiscordIntegration {
     }) {
         return {
             title: `Recap - Week #${week}`,
-            url: 'https://nekz.me/iverb-stats',
+            url: 'https://stats.nekz.me',
             color: 295077,
             fields: [
                 {
