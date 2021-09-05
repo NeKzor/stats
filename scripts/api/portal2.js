@@ -25,13 +25,13 @@ class Portal2Map {
     }
 
     get url() {
-        return `https://board.iverb.me/chamber/${this.bestTimeId}`;
+        return `https://board.portal2.sr/chamber/${this.bestTimeId}`;
     }
     get imageUrl() {
-        return `https://board.iverb.me/images/chambers/${this.bestTimeId}.jpg"`;
+        return `https://board.portal2.sr/images/chambers/${this.bestTimeId}.jpg"`;
     }
     get imageFullUrl() {
-        return `https://board.iverb.me/images/chambers_full/${this.bestTimeId}.jpg"`;
+        return `https://board.portal2.sr/images/chambers_full/${this.bestTimeId}.jpg"`;
     }
     get bestTimeSteamUrl() {
         return `https://steamcommunity.com/stats/Portal2/leaderboards/${this.bestTimeId}`;

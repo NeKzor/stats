@@ -8,7 +8,7 @@ class DiscordIntegration {
         if (!token) throw new Error('missing token');
 
         this.client = new Discord.WebhookClient(id, token);
-        this.username = 'board.iverb.me';
+        this.username = 'board.portal2.sr';
     }
     sendWebhook(data) {
         return this.client

@@ -123,7 +123,7 @@ const RecordsHistoryRow = ({ wr, useLiveDuration }) => {
             <MinTableCell align="left">
                 <Link
                     color="inherit"
-                    href={`https://board.iverb.me/profile/${wr.user.id}`}
+                    href={`https://board.portal2.sr/profile/${wr.user.id}`}
                     rel="noreferrer"
                     target="_blank"
                 >
@@ -153,7 +153,7 @@ const RecordsHistoryRow = ({ wr, useLiveDuration }) => {
                             size="small"
                             style={noWrap}
                             color="inherit"
-                            href={'https://board.iverb.me/getDemo?id=' + wr.id}
+                            href={'https://board.portal2.sr/getDemo?id=' + wr.id}
                             rel="noreferrer"
                             target="_blank"
                         >
@@ -199,7 +199,7 @@ const RecordsRow = ({ wr, orderBy, useLiveDuration, history, onClickHistory }) =
                     >
                         <Link
                             color="inherit"
-                            href={`https://board.iverb.me/chamber/${wr.map.id}`}
+                            href={`https://board.portal2.sr/chamber/${wr.map.id}`}
                             rel="noreferrer"
                             target="_blank"
                         >
@@ -246,7 +246,7 @@ const RecordsRow = ({ wr, orderBy, useLiveDuration, history, onClickHistory }) =
                                 size="small"
                                 style={noWrap}
                                 color="inherit"
-                                href={'https://board.iverb.me/getDemo?id=' + wr.id}
+                                href={'https://board.portal2.sr/getDemo?id=' + wr.id}
                                 rel="noreferrer"
                                 target="_blank"
                             >

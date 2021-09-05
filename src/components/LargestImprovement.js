@@ -104,7 +104,7 @@ const RecordsTable = ({ data }) => {
                             >
                                 <Link
                                     color="inherit"
-                                    href={`https://board.iverb.me/chamber/${row.map.bestTimeId}`}
+                                    href={`https://board.portal2.sr/chamber/${row.map.bestTimeId}`}
                                     rel="noreferrer"
                                     target="_blank"
                                 >

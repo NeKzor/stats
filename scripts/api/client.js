@@ -9,7 +9,7 @@ class ResponseError extends Error {
     }
 }
 
-const BASE_API = 'https://board.iverb.me';
+const BASE_API = 'https://board.portal2.sr';
 
 class Portal2Boards {
     static async changelog(params) {

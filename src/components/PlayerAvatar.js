@@ -23,7 +23,7 @@ const PlayerAvatar = ({ user }) => {
             <Grid item>
                 <Link
                     color="inherit"
-                    href={'https://board.iverb.me/profile/' + user.id}
+                    href={'https://board.portal2.sr/profile/' + user.id}
                     rel="noreferrer"
                     target="_blank"
                     noWrap

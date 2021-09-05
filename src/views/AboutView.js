@@ -113,7 +113,7 @@ const AboutView = () => {
                 <br />
                 <Typography variant="body1">
                     This is{' '}
-                    <Link rel="noopener" href="https://board.iverb.me">
+                    <Link rel="noopener" href="https://board.portal2.sr">
                         iverb
                     </Link>{' '}
                     1½ or something idk. Mainly inspired by{' '}
