@@ -147,7 +147,11 @@ const fetchAndCacheChangelog = async (cache, newWrs) => {
                 }
                 if (cached.youtubeID !== found.youtubeID) {
                     cached.youtubeID = found.youtubeID;
-                    console.warn('media changed changed', found);
+                    console.warn('media changed', found);
+                }
+                if (cached.pending !== found.pending) {
+                    cached.pending = found.pending;
+                    console.warn('pending changed', found);
                 }
             } else {
                 console.warn('removing', cached);
@@ -159,7 +163,9 @@ const fetchAndCacheChangelog = async (cache, newWrs) => {
         tryExportJson(cacheFile, cache, true, false);
 
         newWrs.push(
-            ...newEntries.filter((entry) => entry.wr_gain === '1' && entry.banned === '0').map((entry) => entry.id),
+            ...newEntries
+                .filter((entry) => entry.wr_gain === '1' && entry.banned === '0' && entry.pending === '0')
+                .map((entry) => entry.id),
         );
 
         log.info(
@@ -190,7 +196,7 @@ const main = async (outputDir, weeklyRecap, recapDay) => {
     let pbsThisWeek = 0;
 
     const records = changelog.filter((entry) => {
-        if (entry.banned === '1') {
+        if (entry.banned === '1' || entry.pending === '1') {
             return false;
         }
 
