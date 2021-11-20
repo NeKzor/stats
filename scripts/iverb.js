@@ -134,9 +134,8 @@ const fetchAndCacheChangelog = async (cache, newWrs) => {
 
         const [newEntries, oldEntries] = changelogResult;
 
-        // Remove entries in cache that could not be found in the latest changelog
-        // Could be a profile ban or a removed submission
-        // Also update banned status which can change between fetch cycles
+        // Update old entries
+
         const cachedEntriesToCheck = cache.changelog.slice(0, oldEntries.length);
         for (const cached of cachedEntriesToCheck) {
             const found = oldEntries.find((entry) => entry.id === cached.id);
@@ -153,13 +152,11 @@ const fetchAndCacheChangelog = async (cache, newWrs) => {
                     cached.pending = found.pending;
                     console.warn('pending changed', found);
                 }
-            } else {
-                console.warn('removing', cached);
-                cache.changelog.splice(cache.changelog.indexOf(cached), 1);
             }
         }
 
         cache.changelog.unshift(...newEntries);
+
         tryExportJson(cacheFile, cache, true, false);
 
         newWrs.push(
@@ -170,7 +167,7 @@ const fetchAndCacheChangelog = async (cache, newWrs) => {
 
         log.info(
             `updated changelog with ${newEntries.length} new entries` +
-                ` (wrs: ${newWrs.length}, fetched: ${changelog.length})`,
+                ` (wrs: ${newWrs.length}, fetched: ${changelog.length}, verified missing: ${verifiedCacheCount})`,
         );
     } catch (error) {
         log.error(error);
