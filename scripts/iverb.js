@@ -223,7 +223,7 @@ const main = async (outputDir, weeklyRecap, recapDay) => {
 
     twitter.updateBio({ wrsThisWeek, pbsThisWeek });
 
-    const avatarCache = new Map();
+    const userCache = new Map();
 
     const generateCampaign = (maps) => {
         const campaign = [];
@@ -250,11 +250,12 @@ const main = async (outputDir, weeklyRecap, recapDay) => {
             }
 
             campaignMap.history.forEach((wr) => {
-                const cache = avatarCache.get(wr.user.id);
+                const cache = userCache.get(wr.user.id);
 
                 if (!cache || wr.date > cache.date) {
-                    avatarCache.set(wr.user.id, {
+                    userCache.set(wr.user.id, {
                         date: wr.date,
+                        name: wr.user.name,
                         avatar: wr.user.avatar,
                     });
                 }
@@ -274,13 +275,15 @@ const main = async (outputDir, weeklyRecap, recapDay) => {
             campaign.push(campaignMap);
         }
 
+        const updateUserCache = (wr) => {
+            const cachedUser = userCache.get(wr.user.id);
+            wr.user.name = cachedUser.name;
+            wr.user.avatar = cachedUser.avatar;
+        };
+
         campaign.forEach((campaign) => {
-            campaign.history.forEach((wr) => {
-                wr.user.avatar = avatarCache.get(wr.user.id).avatar;
-            });
-            campaign.wrs.forEach((wr) => {
-                wr.user.avatar = avatarCache.get(wr.user.id).avatar;
-            });
+            campaign.history.forEach(updateUserCache);
+            campaign.wrs.forEach(updateUserCache);
         });
 
         return campaign;
