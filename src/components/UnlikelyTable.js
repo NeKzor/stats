@@ -11,7 +11,7 @@ import TableSortLabel from '@material-ui/core/TableSortLabel';
 import Tooltip from '@material-ui/core/Tooltip';
 import PlayerAvatar from './PlayerAvatar';
 import { stableSortSort } from '../utils/stableSort';
-import { getDateDifferenceColor, formatScore, formatDuration } from '../utils/tools';
+import { getDateDifferenceColor, formatScore } from '../utils/tools';
 
 const rows = [
     { id: 'time_gained', sortable: false, label: 'Date', align: 'left' },
