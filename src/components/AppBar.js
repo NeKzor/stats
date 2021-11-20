@@ -75,7 +75,7 @@ const AppBar = ({ location }) => {
     const list = (
         <div className={classes.list}>
             <List>
-                <ListItem button key={0} component={RouterLink} to={'/'}>
+                <ListItem button component={RouterLink} to={'/'}>
                     <ListItemText primary="stats" />
                 </ListItem>
             </List>
@@ -98,7 +98,6 @@ const AppBar = ({ location }) => {
                 <List>
                     <ListItem
                         button
-                        key={0}
                         component={RouterLink}
                         to={'/demo'}
                         className={page.link === '/demo' ? classes.active : undefined}
@@ -107,7 +106,6 @@ const AppBar = ({ location }) => {
                     </ListItem>
                     <ListItem
                         button
-                        key={0}
                         component={RouterLink}
                         to={'/about'}
                         className={page.link === '/about' ? classes.active : undefined}
@@ -130,7 +128,7 @@ const AppBar = ({ location }) => {
                     </Hidden>
                     <Typography variant="h6" color="inherit">
                         <Link component={RouterLink} to="/" color="inherit" underline="none">
-                            stats
+                            {page.title}
                         </Link>
                     </Typography>
                 </Toolbar>

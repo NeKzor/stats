@@ -22,6 +22,8 @@ const DemoView = () => {
     const isMounted = useIsMounted();
     const theme = useTheme();
 
+    const file = React.useRef(null);
+
     const [replay, setReplay] = React.useState(defaultReplay);
     /* const [parseGhost, setParseGhost] = React.useState(true); */
     const [errorMessage, setErrorMessage] = React.useState(false);
@@ -133,12 +135,21 @@ const DemoView = () => {
     };
 
     React.useEffect(() => {
-        document.querySelector('#file').addEventListener('change', handleChange);
-        return () => document.querySelector('#file').removeEventListener('change', handleChange);
+        if (file.current) {
+            file.current.addEventListener('change', handleChange);
+        }
+
+        return () => {
+            if (file.current) {
+                file.current.removeEventListener('change', handleChange);
+            }
+        };
     }, [handleChange]);
 
     const openFile = () => {
-        document.querySelector('#file').click();
+        if (file.current) {
+            file.current.click();
+        }
     };
 
     return (
@@ -147,7 +158,7 @@ const DemoView = () => {
                 <Button variant="contained" color="primary" disableElevation onClick={openFile}>
                     Open file
                 </Button>
-                <input type="file" id="file" style={{ display: 'none' }} />
+                <input ref={file} type="file" style={{ display: 'none' }} />
                 {/* <FormControlLabel
                     style={{ marginLeft: '20px' }}
                     control={<Checkbox color="primary" checked={parseGhost} onChange={handleParseGhost} />}
