@@ -120,6 +120,11 @@ const fetchAndCacheChangelog = async (cache, newWrs) => {
             maxDaysAgo,
         });
 
+        if (cache.changelog.length === 0) {
+            cache.changelog = changelog;
+            tryExportJson(cacheFile, cache, true, false);
+        }
+
         let changelogResult = false;
 
         while ((changelogResult = findNewEntries(changelog, cache.changelog[retryCount])) === false) {
@@ -167,7 +172,7 @@ const fetchAndCacheChangelog = async (cache, newWrs) => {
 
         log.info(
             `updated changelog with ${newEntries.length} new entries` +
-                ` (wrs: ${newWrs.length}, fetched: ${changelog.length}, verified missing: ${verifiedCacheCount})`,
+                ` (wrs: ${newWrs.length}, fetched: ${changelog.length}})`,
         );
     } catch (error) {
         log.error(error);
@@ -175,6 +180,10 @@ const fetchAndCacheChangelog = async (cache, newWrs) => {
 };
 
 const main = async (outputDir, weeklyRecap, recapDay) => {
+    if (!require('fs').existsSync(cacheFile)) {
+        tryExportJson(cacheFile, { changelog: [] }, true, false);
+    }
+
     const cache = importJson(cacheFile);
 
     const newWrs = [];
