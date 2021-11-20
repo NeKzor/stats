@@ -59,7 +59,7 @@ const App = () => {
                             <Redirect exact from="/" to="/records" />
                             <Route exact path="/records/:date?" component={RecordsView} />
                             <Route exact path="/ranks/:date?" component={RankingsView} />
-                            <Route exact path="/stats/:date?" component={StatsView} />
+                            <Route exact path="/stats/:type?" component={StatsView} />
                             <Route exact path="/race/:date?" component={RaceView} />
                             <Route exact path="/demo" component={DemoView} />
                             <Route exact path="/about" component={AboutView} />

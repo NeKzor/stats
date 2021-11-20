@@ -3,7 +3,7 @@ const { Portal2Map } = require('./api/portal2');
 const cooperativeMaps = Portal2Map.cooperativeMaps();
 
 const isSinglePlayer = (bestTimeId) => {
-    return cooperativeMaps.find((map) => map.bestTimeId === bestTimeId) === undefined;
+    return cooperativeMaps.find((map) => map.isOfficial && map.bestTimeId.toString() === bestTimeId) === undefined;
 };
 
 const asEntry = (entry) => {

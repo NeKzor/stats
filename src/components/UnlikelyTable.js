@@ -2,6 +2,7 @@ import React from 'react';
 import Moment from 'react-moment';
 import Link from '@material-ui/core/Link';
 import { makeStyles } from '@material-ui/core/styles';
+import IconButton from '@material-ui/core/IconButton';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
@@ -9,15 +10,17 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import TableSortLabel from '@material-ui/core/TableSortLabel';
 import Tooltip from '@material-ui/core/Tooltip';
+import SaveAltIcon from '@material-ui/icons/SaveAlt';
 import PlayerAvatar from './PlayerAvatar';
 import { stableSortSort } from '../utils/stableSort';
 import { getDateDifferenceColor, formatScore } from '../utils/tools';
 
 const rows = [
-    { id: 'time_gained', sortable: false, label: 'Date', align: 'left' },
-    { id: 'chamberName', sortable: false, label: 'Map', align: 'left' },
+    { id: 'date', sortable: false, label: 'Date', align: 'left' },
+    { id: 'map.alias', sortable: false, label: 'Map', align: 'left' },
     { id: 'score', sortable: false, label: 'Time', align: 'left' },
-    { id: 'player_name', sortable: false, label: 'Player', align: 'left' },
+    { id: 'user.name', sortable: false, label: 'Player', align: 'left' },
+    { id: 'id', sortable: false, label: '', align: 'left' },
 ];
 
 const UnlikelygHead = ({ order, orderBy, onRequestSort }) => {
@@ -62,8 +65,8 @@ const useStyles = makeStyles((_) => ({
 
 const defaultState = {
     order: 'desc',
-    orderBy: 'time_gained',
-    thenBy: 'chamberName',
+    orderBy: 'date',
+    thenBy: 'map.alias',
     page: 0,
     rowsPerPage: 50,
 };
@@ -99,15 +102,15 @@ const UnlikelyTable = ({ data }) => {
                             <TableRow tabIndex={-1} key={row.id}>
                                 <MinTableCell align="left">
                                     <Tooltip
-                                        title={<Moment fromNow>{row.time_gained}</Moment>}
+                                        title={<Moment fromNow>{row.date}</Moment>}
                                         placement="bottom"
                                         enterDelay={300}
                                     >
                                         <Moment
-                                            style={{ color: getDateDifferenceColor(row.time_gained), ...noWrap }}
+                                            style={{ color: getDateDifferenceColor(row.date), ...noWrap }}
                                             format="YYYY-MM-DD"
                                         >
-                                            {row.time_gained}
+                                            {row.date}
                                         </Moment>
                                     </Tooltip>
                                 </MinTableCell>
@@ -117,16 +120,32 @@ const UnlikelyTable = ({ data }) => {
                                 >
                                     <Link
                                         color="inherit"
-                                        href={`https://board.portal2.sr/chamber/${row.mapid}`}
+                                        href={`https://board.portal2.sr/chamber/${row.map.bestTimeId}`}
                                         rel="noreferrer"
                                         target="_blank"
                                     >
-                                        {row.chamberName}
+                                        {row.map.alias}
                                     </Link>
                                 </MinTableCell>
                                 <MinTableCell align="left">{formatScore(row.score)}</MinTableCell>
                                 <MinTableCell align="left">
-                                    <PlayerAvatar user={{ id: row.profile_number, name: row.player_name, avatar: row.avatar }} />
+                                    <PlayerAvatar user={row.user} />
+                                </MinTableCell>
+                                <MinTableCell align="left" style={noWrap}>
+                                    {row.demo && (
+                                        <Tooltip title="Download Demo" placement="bottom" enterDelay={300}>
+                                            <IconButton
+                                                size="small"
+                                                style={noWrap}
+                                                color="inherit"
+                                                href={'https://board.portal2.sr/getDemo?id=' + row.id}
+                                                rel="noreferrer"
+                                                target="_blank"
+                                            >
+                                                <SaveAltIcon fontSize="inherit" />
+                                            </IconButton>
+                                        </Tooltip>
+                                    )}
                                 </MinTableCell>
                             </TableRow>
                         );

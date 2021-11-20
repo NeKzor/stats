@@ -1,5 +1,6 @@
 import React from 'react';
 import { withRouter } from 'react-router';
+import { useHistory } from 'react-router-dom';
 import Box from '@material-ui/core/Box';
 import Grid from '@material-ui/core/Grid';
 import LinearProgress from '@material-ui/core/LinearProgress';
@@ -31,11 +32,19 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
+const statistics = {
+    'longest-lasting': 'longestLasting',
+    'longest-domination': 'longestDomination',
+    'largest-improvement': 'largestImprovement',
+    'time-frequency': 'timeFrequency',
+};
+
 const StatsView = ({ match }) => {
     const isMounted = useIsMounted();
+    const history = useHistory();
 
     const [game, setGame] = React.useState(undefined);
-    const [type, setType] = React.useState('longestLasting');
+    const [type, setType] = React.useState(statistics[match.params.type] || 'longestLasting');
 
     const onChangeType = React.useCallback(
         (event) => {
@@ -44,16 +53,8 @@ const StatsView = ({ match }) => {
         [setType],
     );
 
-    const page = match.params[0];
-    const date = match.params.date;
-    const useLiveDuration = date === undefined || date === 'latest';
-
     React.useEffect(() => {
-        setGame(undefined);
-    }, [page]);
-
-    React.useEffect(() => {
-        Api.request('stats', date)
+        Api.request('stats')
             .then((game) => {
                 if (isMounted.current) {
                     setGame(game);
@@ -66,7 +67,17 @@ const StatsView = ({ match }) => {
                     setGame(null);
                 }
             });
-    }, [isMounted, page, date, useLiveDuration]);
+    }, [isMounted]);
+
+    React.useEffect(() => {
+        const entry = Object.entries(statistics).find(([_, value]) => value === type);
+        if (entry) {
+            const [route] = entry;
+            if (route) {
+                history.replace(`/stats/${route}`);
+            }
+        }
+    }, [type, history]);
 
     const StatsComponent = (() => {
         switch (type) {
@@ -109,12 +120,15 @@ const StatsView = ({ match }) => {
                                     <Grid item xs={12}>
                                         <Grid container direction="row" justify="center" alignContent="center">
                                             <Grid item xs={12}>
-                                                <StatsComponent data={game[type]} useLiveDuration={useLiveDuration} />
+                                                <StatsComponent data={game[type]} />
                                             </Grid>
                                             {type === 'timeFrequency' && game[type] && (
                                                 <Grid item xs={12}>
-                                                    <Typography variant="subtitle1" style={{ paddingTop: 20, paddingBottom: 10 }}>
-                                                        List of times which very unlikely to achieve.
+                                                    <Typography
+                                                        variant="subtitle1"
+                                                        style={{ paddingTop: 20, paddingBottom: 10 }}
+                                                    >
+                                                        List of times which are very unlikely to achieve.
                                                     </Typography>
                                                     <UnlikelyTable data={game[type].unlikely}/>
                                                 </Grid>
