@@ -135,13 +135,15 @@ const DemoView = () => {
     };
 
     React.useEffect(() => {
-        if (file.current) {
-            file.current.addEventListener('change', handleChange);
+        let fileRef = file.current;
+
+        if (fileRef) {
+            fileRef.addEventListener('change', handleChange);
         }
 
         return () => {
-            if (file.current) {
-                file.current.removeEventListener('change', handleChange);
+            if (fileRef) {
+                fileRef.removeEventListener('change', handleChange);
             }
         };
     }, [handleChange]);
