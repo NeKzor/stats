@@ -35,29 +35,29 @@ class DiscordIntegration {
             fields: [
                 {
                     name: 'Most World Records',
-                    value: mostWorldRecords.map(({ user, wrs }) => `${user.name} - ${wrs}`).join('\n'),
+                    value: mostWorldRecords.map(({ user, wrs }) => `${Discord.Util.escapeMarkdown(user.name)} - ${wrs}`).join('\n'),
                     inline: true,
                 },
                 {
                     name: 'Top Demo Uploaders',
-                    value: mostDemoUploads.map(({ user, prs }) => `${user.name} - ${prs}`).join('\n'),
+                    value: mostDemoUploads.map(({ user, prs }) => `${Discord.Util.escapeMarkdown(user.name)} - ${prs}`).join('\n'),
                     inline: true,
                 },
                 {
                     name: 'Top World Record Timesaves',
                     value: largestImprovement
-                        .map(({ user, map, delta }) => `-${formatScore(delta)} on ${map.alias} by ${user.name}`)
+                        .map(({ user, map, delta }) => `-${formatScore(delta)} on ${map.alias} by ${Discord.Util.escapeMarkdown(user.name)}`)
                         .join('\n'),
                     inline: true,
                 },
                 {
                     name: 'Most Personal Records',
-                    value: mostPersonalRecords.map(({ user, prs }) => `${user.name} - ${prs}`).join('\n'),
+                    value: mostPersonalRecords.map(({ user, prs }) => `${Discord.Util.escapeMarkdown(user.name)} - ${prs}`).join('\n'),
                     inline: true,
                 },
                 {
                     name: 'Top Video Uploaders',
-                    value: mostYouTubeLinks.map(({ user, prs }) => `${user.name} - ${prs}`).join('\n'),
+                    value: mostYouTubeLinks.map(({ user, prs }) => `${Discord.Util.escapeMarkdown(user.name)} - ${prs}`).join('\n'),
                     inline: true,
                 },
                 {
@@ -67,12 +67,6 @@ class DiscordIntegration {
                 },
             ],
         };
-    }
-    static getTestData() {
-        return {};
-    }
-    static sanitiseText(text) {
-        return text.replace('/(\\*|_|`|~)/miu', '\\\\$1');
     }
 }
 
