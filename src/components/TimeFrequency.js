@@ -18,7 +18,7 @@ const TimeFrequency = ({ data, theme }) => {
     const isSpSeriesHidden = chart.current && chart.current.chart.series.isSeriesHidden('Single Player').isHidden;
 
     const series = React.useMemo(() => {
-        return data.data.sort((a, b) => sortByFrequency ? isSpSeriesHidden ? a.mp - b.mp : a.sp - b.sp : a.cs - b.cs);
+        return (data?.data ?? []).sort((a, b) => sortByFrequency ? isSpSeriesHidden ? a.mp - b.mp : a.sp - b.sp : a.cs - b.cs);
     }, [data, isSpSeriesHidden, sortByFrequency]);
 
     return (

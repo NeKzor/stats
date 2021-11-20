@@ -121,7 +121,7 @@ const computeTimeFrequency = (changelog) => {
         }
 
         if (mpFrequency[i] < sus || mpFrequency[i] === undefined) {
-            mp.filter(x => x.cs === i).forEach(x => result.unlikely.push(asEntry.changelog.find(y => y.id === x.id))));
+            mp.filter(x => x.cs === i).forEach(x => result.unlikely.push(asEntry.changelog.find(y => y.id === x.id)));
         }
     }
 

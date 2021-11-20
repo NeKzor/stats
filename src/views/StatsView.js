@@ -35,7 +35,7 @@ const StatsView = ({ match }) => {
     const isMounted = useIsMounted();
 
     const [game, setGame] = React.useState(undefined);
-    const [type, setType] = React.useState('timeFrequency');
+    const [type, setType] = React.useState('longestLasting');
 
     const onChangeType = React.useCallback(
         (event) => {
@@ -111,7 +111,7 @@ const StatsView = ({ match }) => {
                                             <Grid item xs={12}>
                                                 <StatsComponent data={game[type]} useLiveDuration={useLiveDuration} />
                                             </Grid>
-                                            {type === 'timeFrequency' && (
+                                            {type === 'timeFrequency' && game[type] && (
                                                 <Grid item xs={12}>
                                                     <Typography variant="subtitle1" style={{ paddingTop: 20, paddingBottom: 10 }}>
                                                         List of times which very unlikely to achieve.
