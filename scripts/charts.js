@@ -1,56 +1,9 @@
-const cooperativeMapIds = [
-    '47741',
-    '47825',
-    '47828',
-    '47829',
-    '45467',
-    '46362',
-    '47831',
-    '47833',
-    '47835',
-    '47837',
-    '47840',
-    '47841',
-    '47844',
-    '47845',
-    '47848',
-    '47849',
-    '47854',
-    '47856',
-    '47858',
-    '47861',
-    '52642',
-    '52660',
-    '52662',
-    '52663',
-    '52665',
-    '52667',
-    '52671',
-    '52687',
-    '52689',
-    '52691',
-    '52777',
-    '52694',
-    '52711',
-    '52714',
-    '52715',
-    '52717',
-    '52735',
-    '52738',
-    '52740',
-    '49341',
-    '49343',
-    '49345',
-    '49347',
-    '49349',
-    '49351',
-    '52757',
-    '52759',
-    '48287',
-];
+const { Portal2Map } = require('./api/portal2');
 
-const isSinglePlayer = (id) => {
-    return cooperativeMapIds.find(x => x === id) === undefined;
+const cooperativeMaps = Portal2Map.cooperativeMaps();
+
+const isSinglePlayer = (bestTimeId) => {
+    return cooperativeMaps.find((map) => map.bestTimeId === bestTimeId) === undefined;
 };
 
 const asEntry = (entry) => {
@@ -65,6 +18,10 @@ const asEntry = (entry) => {
         score: parseInt(entry.score, 10),
         demo: entry.hasDemo === '1',
         media: entry.youtubeID,
+        map: {
+            bestTimeId: entry.mapid,
+            alias: entry.chamberName,
+        },
     };
 };
 
@@ -121,7 +78,7 @@ const computeTimeFrequency = (changelog) => {
         }
 
         if (mpFrequency[i] < sus || mpFrequency[i] === undefined) {
-            mp.filter(x => x.cs === i).forEach(x => result.unlikely.push(asEntry.changelog.find(y => y.id === x.id)));
+            mp.filter(x => x.cs === i).forEach(x => result.unlikely.push(asEntry(changelog.find(y => y.id === x.id))));
         }
     }
 
@@ -131,7 +88,9 @@ const computeTimeFrequency = (changelog) => {
 const main = (changelog) => {
     const timeFrequency = computeTimeFrequency(changelog);
 
-    return { timeFrequency }
+    return {
+        timeFrequency,
+    };
 };
 
 module.exports = main;
