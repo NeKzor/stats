@@ -7,6 +7,7 @@ const recapCommunity = require('./community');
 const DiscordIntegration = require('./api/discord');
 const TwitterIntegration = require('./api/twitter');
 const computePoints = require('./points');
+const computeCharts = require('./charts');
 
 require('dotenv').config();
 
@@ -338,7 +339,7 @@ const main = async (outputDir, weeklyRecap, recapDay) => {
     }
 
     tryMakeDir(`${outputDir}/stats`);
-    tryExportJson(`${outputDir}/stats/latest.json`, generateStats(overall), true);
+    tryExportJson(`${outputDir}/stats/latest.json`, { ...generateStats(overall), ...computeCharts(changelog) }, true);
 
     game.campaigns.push(overall);
     game.campaigns.forEach((campaign) => generateRankings(campaign, true));
