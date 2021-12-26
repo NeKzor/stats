@@ -129,7 +129,7 @@ const fetchAndCacheChangelog = async (cache, newWrs) => {
         let changelogResult = false;
 
         while ((changelogResult = findNewEntries(changelog, cache.changelog[retryCount])) === false) {
-            if (++retryCount === 10) {
+            if (++retryCount === changelog.length - 1) {
                 throw new Error(
                     'Failed to find last changelog entry. Try --fetch ' +
                         moment().diff(moment(cache.changelog[retryCount].time_gained), 'days') +

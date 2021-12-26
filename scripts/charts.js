@@ -64,7 +64,10 @@ const computeTimeFrequency = (changelog) => {
         unlikely: [],
     };
 
-    const sus = 10; // We should keep it below 10 runs
+    const sus = {
+        sp: 100,
+        mp: 40,
+    };
 
     for (let i = 0; i < 100; ++i) {
         result.data.push({
@@ -73,11 +76,11 @@ const computeTimeFrequency = (changelog) => {
             mp: mpFrequency[i] || 0,
         });
 
-        if (spFrequency[i] < sus || spFrequency[i] === undefined) {
+        if (spFrequency[i] < sus.sp || spFrequency[i] === undefined) {
             sp.filter(x => x.cs === i).forEach(x => result.unlikely.push(asEntry(changelog.find(y => y.id === x.id))));
         }
 
-        if (mpFrequency[i] < sus || mpFrequency[i] === undefined) {
+        if (mpFrequency[i] < sus.mp || mpFrequency[i] === undefined) {
             mp.filter(x => x.cs === i).forEach(x => result.unlikely.push(asEntry(changelog.find(y => y.id === x.id))));
         }
     }
