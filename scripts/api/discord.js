@@ -1,5 +1,4 @@
 const Discord = require('discord.js');
-const moment = require('moment');
 const { formatScore } = require('../utils');
 
 class DiscordIntegration {
@@ -28,6 +27,7 @@ class DiscordIntegration {
         mostActiveMaps,
         week,
     }) {
+        const fieldValue = (value) => (value ? value : 'n/a');
         return {
             title: `Recap - Week #${week}`,
             url: 'https://stats.nekz.me',
@@ -35,34 +35,57 @@ class DiscordIntegration {
             fields: [
                 {
                     name: 'Most World Records',
-                    value: mostWorldRecords.map(({ user, wrs }) => `${Discord.Util.escapeMarkdown(user.name)} - ${wrs}`).join('\n'),
+                    value: fieldValue(
+                        mostWorldRecords
+                            .map(({ user, wrs }) => `${Discord.Util.escapeMarkdown(user.name)} - ${wrs}`)
+                            .join('\n'),
+                    ),
                     inline: true,
                 },
                 {
                     name: 'Top Demo Uploaders',
-                    value: mostDemoUploads.map(({ user, prs }) => `${Discord.Util.escapeMarkdown(user.name)} - ${prs}`).join('\n'),
+                    value: fieldValue(
+                        mostDemoUploads
+                            .map(({ user, prs }) => `${Discord.Util.escapeMarkdown(user.name)} - ${prs}`)
+                            .join('\n'),
+                    ),
                     inline: true,
                 },
                 {
                     name: 'Top World Record Timesaves',
-                    value: largestImprovement
-                        .map(({ user, map, delta }) => `-${formatScore(delta)} on ${map.alias} by ${Discord.Util.escapeMarkdown(user.name)}`)
-                        .join('\n'),
+                    value: fieldValue(
+                        largestImprovement
+                            .map(
+                                ({ user, map, delta }) =>
+                                    `-${formatScore(delta)} on ${map.alias} by ${Discord.Util.escapeMarkdown(
+                                        user.name,
+                                    )}`,
+                            )
+                            .join('\n'),
+                    ),
                     inline: true,
                 },
                 {
                     name: 'Most Personal Records',
-                    value: mostPersonalRecords.map(({ user, prs }) => `${Discord.Util.escapeMarkdown(user.name)} - ${prs}`).join('\n'),
+                    value: fieldValue(
+                        mostPersonalRecords
+                            .map(({ user, prs }) => `${Discord.Util.escapeMarkdown(user.name)} - ${prs}`)
+                            .join('\n'),
+                    ),
                     inline: true,
                 },
                 {
                     name: 'Top Video Uploaders',
-                    value: mostYouTubeLinks.map(({ user, prs }) => `${Discord.Util.escapeMarkdown(user.name)} - ${prs}`).join('\n'),
+                    value: fieldValue(
+                        mostYouTubeLinks
+                            .map(({ user, prs }) => `${Discord.Util.escapeMarkdown(user.name)} - ${prs}`)
+                            .join('\n'),
+                    ),
                     inline: true,
                 },
                 {
                     name: 'Most Records By Map',
-                    value: mostActiveMaps.map(({ map, count }) => `${map.alias} - ${count}`).join('\n'),
+                    value: fieldValue(mostActiveMaps.map(({ map, count }) => `${map.alias} - ${count}`).join('\n')),
                     inline: true,
                 },
             ],
