@@ -13,7 +13,10 @@ import SwipeableDrawer from '@material-ui/core/SwipeableDrawer';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
+import DarkModeIcon from '@material-ui/icons/Brightness4';
+import LightModeIcon from '@material-ui/icons/Brightness7';
 import MenuIcon from '@material-ui/icons/Menu';
+import AppState from '../AppState';
 import { useTitle } from '../Hooks';
 
 const useStyles = makeStyles((theme) => ({
@@ -54,6 +57,11 @@ const pageLinks = [
 ];
 
 const AppBar = ({ location }) => {
+    const {
+        state: { darkMode },
+        dispatch,
+    } = React.useContext(AppState);
+
     const [open, setOpen] = React.useState(false);
 
     const page = React.useMemo(
@@ -68,6 +76,10 @@ const AppBar = ({ location }) => {
 
     const showDrawer = (state) => () => {
         setOpen(state);
+    };
+
+    const toggleDarkMode = () => {
+        dispatch({ action: 'toggleDarkMode' });
     };
 
     const classes = useStyles();
@@ -131,6 +143,15 @@ const AppBar = ({ location }) => {
                             {page.title}
                         </Link>
                     </Typography>
+                    <div className={classes.flex} />
+                    <IconButton
+                        title="Toggle light/dark theme"
+                        color="inherit"
+                        size="small"
+                        onClick={toggleDarkMode}
+                    >
+                        {darkMode.enabled ? <LightModeIcon /> : <DarkModeIcon />}
+                    </IconButton>
                 </Toolbar>
             </MaterialAppBar>
             <Hidden lgUp implementation="css">
