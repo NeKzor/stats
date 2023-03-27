@@ -10,6 +10,11 @@ import MenuItem from '@material-ui/core/MenuItem';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import { makeStyles } from '@material-ui/core';
+import MomentUtils from '@date-io/moment';
+import {
+  MuiPickersUtilsProvider,
+  KeyboardDatePicker,
+} from '@material-ui/pickers';
 import FloatingActionButton from '../components/FloatingActionButton';
 import SimpleTitle from '../components/SimpleTitle';
 import BarChart from '../components/RaceChart';
@@ -25,12 +30,18 @@ const useStyles = makeStyles((theme) => ({
         margin: theme.spacing(1),
         minWidth: 120,
     },
+    datePicker: {
+        marginTop: 0,
+        width: 140,
+    },
 }));
 
 const randomColor = () => `rgb(${255 * Math.random()}, ${255 * Math.random()}, ${255 * Math.random()})`;
 
 const RaceView = ({ match }) => {
     const isMounted = useIsMounted();
+
+    const chart = React.useRef(null);
 
     const [race, setRace] = React.useState({
         data: undefined,
@@ -42,10 +53,28 @@ const RaceView = ({ match }) => {
     const [run, setRun] = React.useState(true);
     const [type, setType] = React.useState('unique');
     const [campaign, setCampaign] = React.useState('single-player');
+    const [date, setDate] = React.useState(new Date());
+    const [minDate, setMinDate] = React.useState(new Date());
 
     const page = match.params[0];
-    const date = match.params.date;
-    const useLiveDuration = date === undefined || date === 'latest';
+
+    const onChangeDate = React.useCallback(
+        (date) => {
+            if (chart.current) {
+                const { props } = chart.current;
+                const newDate = moment(date).format('YYYY-MM-DD');
+                const idx = props.timeline.indexOf(newDate);
+
+                if (idx !== -1) {
+                    chart.current.setState((prevState) => ({ ...prevState, idx }));
+                }
+
+                clearInterval(chart.current.state.intervalId);
+            }
+            setDate(date);
+        },
+        [setDate],
+    );
 
     const onChangeType = React.useCallback(
         (event) => {
@@ -75,6 +104,9 @@ const RaceView = ({ match }) => {
                     const users = data.map(({ user }) => user);
                     const [firstEntry] = data;
                     const length = firstEntry ? (firstEntry.records || firstEntry.points).length : 0;
+
+                    setDate(new Date(firstRecordDate));
+                    setMinDate(new Date(firstRecordDate));
 
                     setRace({
                         data: data.reduce((chart, { user, records, points }) => {
@@ -112,7 +144,7 @@ const RaceView = ({ match }) => {
                     setRace({ data: null });
                 }
             });
-    }, [isMounted, page, date, useLiveDuration, type, campaign]);
+    }, [isMounted, page, type, campaign]);
 
     const classes = useStyles();
 
@@ -137,6 +169,25 @@ const RaceView = ({ match }) => {
                                 <MenuItem value={'points'}>Points</MenuItem>
                             </Select>
                         </FormControl>
+                        <FormControl className={classes.formControl}>
+                            <MuiPickersUtilsProvider utils={MomentUtils}>
+                                <KeyboardDatePicker
+                                    className={classes.datePicker}
+                                    disableToolbar
+                                    minDate={minDate}
+                                    variant="inline"
+                                    format="YYYY-MM-DD"
+                                    margin="normal"
+                                    label="Start Date"
+                                    value={date}
+                                    onChange={onChangeDate}
+                                    disableFuture
+                                    KeyboardButtonProps={{
+                                        'aria-label': 'change date',
+                                    }}
+                                    />
+                            </MuiPickersUtilsProvider>
+                        </FormControl>
                     </Box>
                     {race.data === undefined ? (
                         <LinearProgress />
@@ -154,6 +205,7 @@ const RaceView = ({ match }) => {
                                 onClick={() => setRun((run) => !run)}
                             >
                                 <BarChart
+                                    ref={chart}
                                     start={run}
                                     timeout={50}
                                     delay={1}
