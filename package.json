@@ -7,8 +7,8 @@
         "start": "react-scripts start",
         "build": "react-scripts build && cp build/index.html build/404.html",
         "test": "react-scripts test --env=jsdom",
-        "clone:api": "git clone --single-branch --branch api https://github.com/NeKzBot/iverb-stats api",
-        "dev": "hs ./api --cors",
+        "clone:api": "gix -v clone https://github.com/NeKzBot/iverb-stats api",
+        "dev": "http-server ./api --cors",
         "prettier": "prettier --config ./prettier.config.js --write './src/**/*.js' './scripts/**/*.js'",
         "audit": "npm audit --production"
     },
