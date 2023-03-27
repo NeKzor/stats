@@ -591,7 +591,7 @@ const generateRankings = (campaign, statsPage) => {
                     const [beatenBy] = reignWr.beatenBy;
                     const duration = moment(beatenBy ? beatenBy.date : undefined).diff(moment(r.date), 's');
                     if (duration < 0) {
-                        log.warn('negative duration for:', r);
+                        log.warn('negative duration for:', JSON.stringify(r));
                     }
 
                     return duration;
