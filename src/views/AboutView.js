@@ -78,12 +78,6 @@ const AboutView = () => {
                 <Typography variant="h5">Next Update</Typography>
                 <br />
                 {nextUpdate}
-                <Padding />
-                <Tooltip title="Source Code">
-                    <Link rel="noopener" href="https://github.com/NeKzor/stats">
-                        github.com/NeKzor/stats
-                    </Link>
-                </Tooltip>
             </Paper>
         </ViewContent>
     );
