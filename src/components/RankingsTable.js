@@ -73,6 +73,15 @@ const MinTableCell = (props) => <TableCell style={minifiedStyle} {...props} />;
 const RecordsTable = ({ data, showDuration }) => {
     const [{ order, orderBy, thenBy }, setState] = React.useState({ ...defaultState });
 
+    React.useEffect(() => {
+        setState((state) => ({
+            ...state,
+            order: 'desc',
+            orderBy: 'wrs',
+            thenBy: 'wrs',
+        }));
+    }, [data, showDuration]);
+
     const handleRequestSort = (_, prop1, prop2) => {
         const newOrderBy = prop1;
         const newThenBy = prop2;
