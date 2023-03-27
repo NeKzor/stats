@@ -79,15 +79,6 @@ const AboutView = () => {
                 <br />
                 {nextUpdate}
                 <Padding />
-                <Typography variant="h5">Theme Settings</Typography>
-                <br />
-                <FormGroup row>
-                    <FormControlLabel
-                        control={<Switch checked={darkMode.enabled} onChange={toggleDarkMode} color="primary" />}
-                        label="Dark Mode"
-                    />
-                </FormGroup>
-                <Padding />
                 <Tooltip title="Source Code">
                     <Link rel="noopener" href="https://github.com/NeKzor/stats">
                         github.com/NeKzor/stats
