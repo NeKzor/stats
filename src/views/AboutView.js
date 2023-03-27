@@ -1,15 +1,10 @@
 import React from 'react';
 import moment from 'moment';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import FormGroup from '@material-ui/core/FormGroup';
 import Link from '@material-ui/core/Link';
 import Paper from '@material-ui/core/Paper';
-import Switch from '@material-ui/core/Switch';
-import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
 import ViewContent from './ViewContent';
-import AppState from '../AppState';
 
 const useStyles = makeStyles((theme) => ({
     aboutBox: {
@@ -35,11 +30,6 @@ const getUpdate = () => {
 let clockTimer = null;
 
 const AboutView = () => {
-    const {
-        state: { darkMode },
-        dispatch,
-    } = React.useContext(AppState);
-
     const [nextUpdate, setNextUpdate] = React.useState(getUpdate());
 
     React.useEffect(() => {
@@ -49,10 +39,6 @@ const AboutView = () => {
 
         return () => clearInterval(clockTimer);
     }, []);
-
-    const toggleDarkMode = () => {
-        dispatch({ action: 'toggleDarkMode' });
-    };
 
     const classes = useStyles();
 
