@@ -16,7 +16,7 @@ const PlayerAvatar = ({ user }) => {
     const classes = useStyles();
 
     return (
-        <Grid container direction="row" wrap="nowrap">
+        <Grid container direction="row" wrap="nowrap" alignItems="center">
             <Grid item>
                 <Avatar className={classes.avatar} src={user.avatar} />
             </Grid>
