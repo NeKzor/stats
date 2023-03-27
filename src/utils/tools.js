@@ -56,5 +56,9 @@ export function formatDuration(duration) {
     addTitle(Math.floor(h), 'hour');
     addTitle(Math.floor(m), 'minute');
 
-    return [Math.floor(days), title.join(', ')];
+    return [Math.floor(days), title.join(' ')];
+}
+
+export function formatNumber(number) {
+    return Intl.NumberFormat('en-GB').format(number);
 }

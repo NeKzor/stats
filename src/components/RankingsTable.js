@@ -8,7 +8,7 @@ import TableRow from '@material-ui/core/TableRow';
 import TableSortLabel from '@material-ui/core/TableSortLabel';
 import Tooltip from '@material-ui/core/Tooltip';
 import { stableSort, stableSortSort } from '../utils/stableSort';
-import { formatDuration } from '../utils/tools';
+import { formatDuration, formatNumber } from '../utils/tools';
 import PlayerAvatar from './PlayerAvatar';
 
 const rows = [
@@ -119,7 +119,7 @@ const RecordsTable = ({ data, showDuration }) => {
                                     <MinTableCell align="left">
                                         <Tooltip title={durationTitle} placement="bottom" enterDelay={300}>
                                             <span>
-                                                {duration} day{duration === 1 ? '' : 's'}
+                                                {formatNumber(duration)} day{duration === 1 ? '' : 's'}
                                             </span>
                                         </Tooltip>
                                     </MinTableCell>

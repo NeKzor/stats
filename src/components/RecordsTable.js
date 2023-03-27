@@ -19,7 +19,7 @@ import HistoryIcon from '@material-ui/icons/History';
 import YouTubeIcon from '@material-ui/icons/YouTube';
 import PlayerAvatar from './PlayerAvatar';
 import { stableSort } from '../utils/stableSort';
-import { formatDuration, formatScore, getDateDifferenceColor } from '../utils/tools';
+import { formatDuration, formatNumber, formatScore, getDateDifferenceColor } from '../utils/tools';
 import { useLocalStorage } from '../Hooks';
 
 const rows = [
@@ -141,7 +141,7 @@ const RecordsHistoryRow = ({ wr, useLiveDuration }) => {
                         {useLiveDuration && isCurrentWr ? (
                             <Moment style={noWrap} diff={wr.date} unit="days"></Moment>
                         ) : (
-                            <span>{duration}</span>
+                            <span>{formatNumber(duration)}</span>
                         )}
                     </Tooltip>
                 </MinTableCell>
@@ -235,7 +235,7 @@ const RecordsRow = ({ wr, orderBy, useLiveDuration, history, onClickHistory }) =
                         {useLiveDuration ? (
                             <Moment style={noWrap} diff={wr.date} unit="days"></Moment>
                         ) : (
-                            <span>{wr.duration}</span>
+                            <span>{formatNumber(wr.duration)}</span>
                         )}
                     </Tooltip>
                 </MinTableCell>

@@ -11,7 +11,7 @@ import TableSortLabel from '@material-ui/core/TableSortLabel';
 import Tooltip from '@material-ui/core/Tooltip';
 import PlayerAvatar from './PlayerAvatar';
 import { stableSortSort } from '../utils/stableSort';
-import { getDateDifferenceColor, formatScore, formatDuration } from '../utils/tools';
+import { getDateDifferenceColor, formatScore, formatDuration, formatNumber } from '../utils/tools';
 
 const rows = [
     { id: 'map.alias', sortable: false, label: 'Map', align: 'left' },
@@ -125,7 +125,7 @@ const RecordsTable = ({ data, useLiveDuration }) => {
                                         {useLiveDuration && row.beatenBy.id === null ? (
                                             <Moment style={noWrap} diff={row.date} unit="days"></Moment>
                                         ) : (
-                                            <span>{duration}</span>
+                                            <span>{formatNumber(duration)}</span>
                                         )}
                                     </Tooltip>
                                 </MinTableCell>
