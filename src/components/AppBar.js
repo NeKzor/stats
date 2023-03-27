@@ -15,6 +15,7 @@ import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
 import DarkModeIcon from '@material-ui/icons/Brightness4';
 import LightModeIcon from '@material-ui/icons/Brightness7';
+import GitHubIcon from '@material-ui/icons/GitHub';
 import MenuIcon from '@material-ui/icons/Menu';
 import AppState from '../AppState';
 import { useTitle } from '../Hooks';
@@ -42,6 +43,9 @@ const useStyles = makeStyles((theme) => ({
     },
     active: {
         color: theme.palette.primary.main,
+    },
+    githubButton: {
+        marginRight: 10,
     },
 }));
 
@@ -144,6 +148,16 @@ const AppBar = ({ location }) => {
                         </Link>
                     </Typography>
                     <div className={classes.flex} />
+                    <Link color="inherit" rel="noopener" href="https://github.com/NeKzor/stats">
+                        <IconButton
+                            className={classes.githubButton}
+                            title="View source code"
+                            color="inherit"
+                            size="small"
+                        >
+                            <GitHubIcon />
+                        </IconButton>
+                    </Link>
                     <IconButton
                         title="Toggle light/dark theme"
                         color="inherit"
